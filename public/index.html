@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="description" content="An interactive design tool for creating, customizing, and exporting string and pulley logo systems and geometric vector graphics.">
-    <title>aphex - string and pulley logo system</title>
+    <title>Aphex - String and Pulley Logo System</title>
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <style>
         * {
@@ -194,6 +194,31 @@
 
         button:active {
             opacity: 0.8;
+        }
+
+        button:disabled {
+            opacity: 0.35;
+            cursor: default;
+            pointer-events: none;
+        }
+
+        .val-input {
+            width: 58px;
+            background: var(--bg-body);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 2px 4px;
+            font-size: 10px;
+            font-family: inherit;
+            font-weight: bold;
+            text-align: right;
+            border-radius: 2px;
+            transition: border-color 0.15s, outline 0.15s;
+        }
+
+        .val-input:focus {
+            outline: 1px solid var(--border-active);
+            border-color: var(--border-active);
         }
 
         .btn-del {
@@ -435,6 +460,9 @@
     <div class="canvas-area">
         <!-- Canvas Toolbar -->
         <div class="toolbar">
+            <button id="undoBtn" title="Undo (Cmd+Z / Ctrl+Z)" disabled>↺ UNDO</button>
+            <button id="redoBtn" title="Redo (Cmd+Y / Ctrl+Y)" disabled>↻ REDO</button>
+            <div style="width: 1px; background: var(--border); margin: 2px 2px;"></div>
             <button id="zoomOutBtn" title="Zoom Out (-)">-</button>
             <button id="zoomResetBtn" title="Reset Zoom &amp; Pan" style="min-width: 48px;">100%</button>
             <button id="zoomInBtn" title="Zoom In (+)">+</button>
@@ -454,6 +482,8 @@
         const nodeList = document.getElementById('nodeList');
         const canvasWrap = document.getElementById('canvasWrap');
         const zoomResetBtn = document.getElementById('zoomResetBtn');
+        const undoBtn = document.getElementById('undoBtn');
+        const redoBtn = document.getElementById('redoBtn');
 
         let nodes = [];
         let nextId = 1;
@@ -462,7 +492,63 @@
         // Node drag state
         let isDragging = false;
         let dragOff = { x: 0, y: 0 };
+        let dragInitialState = null;
         let guides = [];
+
+        // History state (Undo / Redo)
+        let undoStack = [];
+        let redoStack = [];
+        const MAX_HISTORY = 50;
+
+        function getSnapshot() {
+            return JSON.stringify(nodes);
+        }
+
+        function updateUndoRedoUI() {
+            if (undoBtn) undoBtn.disabled = undoStack.length === 0;
+            if (redoBtn) redoBtn.disabled = redoStack.length === 0;
+        }
+
+        function saveHistory() {
+            const current = getSnapshot();
+            if (undoStack.length > 0 && undoStack[undoStack.length - 1] === current) {
+                return;
+            }
+            undoStack.push(current);
+            if (undoStack.length > MAX_HISTORY) {
+                undoStack.shift();
+            }
+            redoStack = [];
+            updateUndoRedoUI();
+        }
+
+        function undo() {
+            if (undoStack.length === 0) return;
+            const current = getSnapshot();
+            redoStack.push(current);
+            const previous = undoStack.pop();
+            nodes = JSON.parse(previous);
+            if (selectedId !== null && !nodes.some(n => n.id === selectedId)) {
+                selectedId = nodes.length > 0 ? nodes[0].id : null;
+            }
+            updateUndoRedoUI();
+            renderUI();
+            draw();
+        }
+
+        function redo() {
+            if (redoStack.length === 0) return;
+            const current = getSnapshot();
+            undoStack.push(current);
+            const next = redoStack.pop();
+            nodes = JSON.parse(next);
+            if (selectedId !== null && !nodes.some(n => n.id === selectedId)) {
+                selectedId = nodes.length > 0 ? nodes[0].id : null;
+            }
+            updateUndoRedoUI();
+            renderUI();
+            draw();
+        }
 
         // Viewport pan & zoom state
         let zoom = 1.0;
@@ -509,7 +595,8 @@
             return {
                 isLight,
                 workspaceBg: isLight ? '#fafafa' : '#141414',
-                gridColor: isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.06)',
+                gridColor: isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)',
+                subGridColor: isLight ? 'rgba(0, 0, 0, 0.035)' : 'rgba(255, 255, 255, 0.035)',
                 emptyText: isLight ? '#888888' : '#666666',
                 shapeFill: isLight ? '#000000' : '#ffffff',
                 guideUnselected: isLight ? 'rgba(220, 50, 47, 0.8)' : 'rgba(255, 85, 85, 0.85)',
@@ -518,6 +605,8 @@
                 centerDotSelected: isLight ? '#0066cc' : '#3399ff',
                 snapGuideCenter: isLight ? '#008800' : '#44bb44',
                 snapGuideEdge: isLight ? '#0088cc' : '#33ccff',
+                snapGuideGrid: isLight ? '#8b5cf6' : '#a855f7',
+                snapGuideMidpoint: isLight ? '#d97706' : '#fbbf24',
             };
         }
 
@@ -683,6 +772,7 @@
 
         // ===== UI =====
         window.deleteNode = function(id) {
+            saveHistory();
             nodes = nodes.filter(n => n.id !== id);
             if (selectedId === id) selectedId = null;
             renderUI();
@@ -691,18 +781,54 @@
 
         window.setSide = function(id, side) {
             const n = nodes.find(x => x.id === id);
-            if (n) { n.side = side; renderUI(); draw(); }
+            if (n && n.side !== side) {
+                saveHistory();
+                n.side = side;
+                renderUI();
+                draw();
+            }
         };
 
         window.updateR = function(id, val, el) {
             const n = nodes.find(x => x.id === id);
             if (n) {
-                n.r = parseFloat(val);
-                if (el) {
-                    const badge = el.parentElement.querySelector('.val');
-                    if (badge) badge.innerText = val;
+                const num = parseFloat(val);
+                if (!isNaN(num) && num > 0) {
+                    n.r = num;
+                    if (el) {
+                        const card = el.closest('.node-card');
+                        if (card) {
+                            const input = card.querySelector('.val-input');
+                            if (input && input !== document.activeElement) {
+                                input.value = num;
+                            }
+                        }
+                    }
+                    draw();
                 }
-                draw();
+            }
+        };
+
+        window.updateRNumber = function(id, val, commitHistory, el) {
+            const n = nodes.find(x => x.id === id);
+            if (n) {
+                const num = parseFloat(val);
+                if (!isNaN(num) && num > 0) {
+                    if (commitHistory) {
+                        saveHistory();
+                    }
+                    n.r = num;
+                    if (el) {
+                        const card = el.closest('.node-card');
+                        if (card) {
+                            const range = card.querySelector('input[type="range"]');
+                            if (range) {
+                                range.value = Math.min(Math.max(num, 10), 300);
+                            }
+                        }
+                    }
+                    draw();
+                }
             }
         };
 
@@ -741,8 +867,11 @@
                         <button type="button" class="btn-del" onclick="deleteNode(${n.id})" title="Delete Pulley">[X]</button>
                     </div>
                     <div>
-                        <div class="row"><span>Radius</span><span class="val" style="font-weight: bold;">${n.r}</span></div>
-                        <input type="range" min="10" max="300" value="${n.r}" oninput="updateR(${n.id}, this.value, this)">
+                        <div class="row">
+                            <span>Radius</span>
+                            <input type="number" class="val-input" min="1" max="2000" step="any" value="${n.r}" onchange="updateRNumber(${n.id}, this.value, true, this)" oninput="updateRNumber(${n.id}, this.value, false, this)" title="Type specific radius value">
+                        </div>
+                        <input type="range" min="10" max="300" value="${Math.min(Math.max(n.r, 10), 300)}" onmousedown="saveHistory()" ontouchstart="saveHistory()" oninput="updateR(${n.id}, this.value, this)">
                     </div>
                 `;
 
@@ -803,6 +932,7 @@
                     const after = horiz ? e.clientX >= rect.left + rect.width / 2 : e.clientY >= rect.top + rect.height / 2;
                     if (after) toIndex += 1;
                     if (fromIndex === toIndex || fromIndex === toIndex - 1) return;
+                    saveHistory();
                     const [moved] = nodes.splice(fromIndex, 1);
                     nodes.splice(fromIndex < toIndex ? toIndex - 1 : toIndex, 0, moved);
                     renderUI();
@@ -854,6 +984,7 @@
                         touchCardDrag = null;
 
                         if (fromIndex !== null && toIndex !== null && fromIndex !== toIndex && fromIndex !== toIndex - 1) {
+                            saveHistory();
                             const [moved] = nodes.splice(fromIndex, 1);
                             nodes.splice(fromIndex < toIndex ? toIndex - 1 : toIndex, 0, moved);
                             renderUI();
@@ -895,21 +1026,45 @@
             ctx.translate(panX, panY);
             ctx.scale(zoom, zoom);
 
-            // Infinite Dynamic Grid across visible viewport
+            // Infinite Dynamic Grid with Sub-Grid Midpoints across visible viewport
             const gridSize = 40;
-            const startX = Math.floor((-panX / zoom) / gridSize) * gridSize - gridSize;
-            const endX = Math.ceil(((cssW - panX) / zoom) / gridSize) * gridSize + gridSize;
-            const startY = Math.floor((-panY / zoom) / gridSize) * gridSize - gridSize;
-            const endY = Math.ceil(((cssH - panY) / zoom) / gridSize) * gridSize + gridSize;
+            const subGridSize = 20;
+            const startX = Math.floor((-panX / zoom) / subGridSize) * subGridSize - subGridSize;
+            const endX = Math.ceil(((cssW - panX) / zoom) / subGridSize) * subGridSize + subGridSize;
+            const startY = Math.floor((-panY / zoom) / subGridSize) * subGridSize - subGridSize;
+            const endY = Math.ceil(((cssH - panY) / zoom) / subGridSize) * subGridSize + subGridSize;
 
+            // 1. Sub-grid midpoint lines (dashed light)
+            ctx.strokeStyle = colors.subGridColor;
+            ctx.lineWidth = 1 / zoom;
+            ctx.setLineDash([2 / zoom, 2 / zoom]);
+            ctx.beginPath();
+            for (let x = startX; x <= endX; x += subGridSize) {
+                if (x % gridSize !== 0) {
+                    ctx.moveTo(x, startY); ctx.lineTo(x, endY);
+                }
+            }
+            for (let y = startY; y <= endY; y += subGridSize) {
+                if (y % gridSize !== 0) {
+                    ctx.moveTo(startX, y); ctx.lineTo(endX, y);
+                }
+            }
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // 2. Major grid lines (solid)
             ctx.strokeStyle = colors.gridColor;
             ctx.lineWidth = 1 / zoom;
             ctx.beginPath();
-            for (let x = startX; x <= endX; x += gridSize) {
-                ctx.moveTo(x, startY); ctx.lineTo(x, endY);
+            for (let x = startX; x <= endX; x += subGridSize) {
+                if (x % gridSize === 0) {
+                    ctx.moveTo(x, startY); ctx.lineTo(x, endY);
+                }
             }
-            for (let y = startY; y <= endY; y += gridSize) {
-                ctx.moveTo(startX, y); ctx.lineTo(endX, y);
+            for (let y = startY; y <= endY; y += subGridSize) {
+                if (y % gridSize === 0) {
+                    ctx.moveTo(startX, y); ctx.lineTo(endX, y);
+                }
             }
             ctx.stroke();
 
@@ -991,7 +1146,13 @@
                 ctx.lineWidth = 1 / zoom;
                 ctx.setLineDash([4 / zoom, 4 / zoom]);
                 guides.forEach(g => {
-                    ctx.strokeStyle = g.color === '#008800' || g.color === '#44bb44' ? colors.snapGuideCenter : colors.snapGuideEdge;
+                    if (g.color === '#008800' || g.color === '#44bb44') {
+                        ctx.strokeStyle = colors.snapGuideCenter;
+                    } else if (g.color === '#0088cc' || g.color === '#33ccff') {
+                        ctx.strokeStyle = colors.snapGuideEdge;
+                    } else {
+                        ctx.strokeStyle = g.color;
+                    }
                     ctx.beginPath();
                     ctx.moveTo(g.x1, g.y1);
                     ctx.lineTo(g.x2, g.y2);
@@ -1170,6 +1331,7 @@
                         return;
                     }
 
+                    saveHistory();
                     nodes = importedNodes;
                     nextId = nodes.reduce((max, n) => Math.max(max, n.id || 0), 0) + 1;
                     selectedId = nodes.length > 0 ? nodes[0].id : null;
@@ -1196,6 +1358,29 @@
         }, { passive: false });
 
         window.addEventListener('keydown', (e) => {
+            const isCmdOrCtrl = e.metaKey || e.ctrlKey;
+            const key = e.key ? e.key.toLowerCase() : '';
+
+            // Undo: Cmd+Z or Ctrl+Z (without Shift)
+            if (isCmdOrCtrl && key === 'z' && !e.shiftKey) {
+                if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
+                    return;
+                }
+                e.preventDefault();
+                undo();
+                return;
+            }
+
+            // Redo: Cmd+Y or Cmd+Shift+Z or Ctrl+Y or Ctrl+Shift+Z
+            if (isCmdOrCtrl && (key === 'y' || (key === 'z' && e.shiftKey))) {
+                if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
+                    return;
+                }
+                e.preventDefault();
+                redo();
+                return;
+            }
+
             if (e.code === 'Space' && !e.repeat && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'SELECT') {
                 isSpacePressed = true;
                 canvasWrap.style.cursor = 'grab';
@@ -1225,6 +1410,7 @@
             if (hit) {
                 selectedId = hit.id;
                 isDragging = true;
+                dragInitialState = getSnapshot();
                 dragOff.x = p.x - hit.x;
                 dragOff.y = p.y - hit.y;
                 canvasWrap.style.cursor = 'grabbing';
@@ -1258,6 +1444,7 @@
             const viewMaxX = (wrapRect.width - panX + 100) / zoom;
             const viewMinY = (-panY - 100) / zoom;
             const viewMaxY = (wrapRect.height - panY + 100) / zoom;
+            const colors = getThemeColors();
 
             let bestSnapX = null;
             let bestSnapY = null;
@@ -1282,6 +1469,20 @@
                 }
             }
 
+            // 1. Grid Line & Cell Midpoint Snapping (every 20px)
+            const gridStep = 20;
+            const nearestGridX = Math.round(rawX / gridStep) * gridStep;
+            const nearestGridY = Math.round(rawY / gridStep) * gridStep;
+            const isMidX = (nearestGridX % 40) !== 0;
+            const isMidY = (nearestGridY % 40) !== 0;
+
+            const gridColorX = isMidX ? colors.snapGuideMidpoint : colors.snapGuideGrid;
+            const gridColorY = isMidY ? colors.snapGuideMidpoint : colors.snapGuideGrid;
+
+            trySnapX(rawX, nearestGridX, nearestGridX, gridColorX);
+            trySnapY(rawY, nearestGridY, nearestGridY, gridColorY);
+
+            // 2. Node-to-Node Center & Edge Snapping
             const centerColor = '#008800';
             const edgeColor = '#0088cc';
 
@@ -1346,6 +1547,16 @@
         });
 
         window.addEventListener('mouseup', () => {
+            if (isDragging && dragInitialState) {
+                const currentState = getSnapshot();
+                if (dragInitialState !== currentState) {
+                    undoStack.push(dragInitialState);
+                    if (undoStack.length > MAX_HISTORY) undoStack.shift();
+                    redoStack = [];
+                    updateUndoRedoUI();
+                }
+                dragInitialState = null;
+            }
             isDragging = false;
             isPanning = false;
             guides = [];
@@ -1496,7 +1707,11 @@
         window.addEventListener('touchcancel', endTouch);
 
         // ===== CONTROL BUTTON LISTENERS =====
+        document.getElementById('undoBtn').addEventListener('click', undo);
+        document.getElementById('redoBtn').addEventListener('click', redo);
+
         document.getElementById('addBtn').addEventListener('click', () => {
+            saveHistory();
             const id = nextId++;
             const wrapRect = canvasWrap.getBoundingClientRect();
             const centerWorld = mousePos({
