@@ -20,6 +20,7 @@
             --bg-body: #ffffff;
             --bg-sidebar: #f5f5f5;
             --bg-card: #ffffff;
+            --bg-card-sub: #fafafa;
             --bg-canvas: #fafafa;
             --text-main: #111111;
             --text-muted: #666666;
@@ -33,8 +34,14 @@
             --shape-fill: #000000;
             --guide-unselected: rgba(220, 50, 47, 0.8);
             --guide-selected: #0066cc;
+            --guide-hole: #e03131;
             --snap-center: #008800;
             --snap-edge: #0088cc;
+            --accent-hole: #d9383a;
+            --selection-marquee: rgba(0, 102, 204, 0.12);
+            --selection-marquee-border: #0066cc;
+            --badge-add: #2b8a3e;
+            --badge-sub: #c92a2a;
         }
 
         @media (prefers-color-scheme: dark) {
@@ -43,6 +50,7 @@
                 --bg-body: #111111;
                 --bg-sidebar: #181818;
                 --bg-card: #222222;
+                --bg-card-sub: #1e1e1e;
                 --bg-canvas: #141414;
                 --text-main: #eeeeee;
                 --text-muted: #888888;
@@ -56,8 +64,14 @@
                 --shape-fill: #ffffff;
                 --guide-unselected: rgba(255, 85, 85, 0.85);
                 --guide-selected: #3399ff;
+                --guide-hole: #ff6b6b;
                 --snap-center: #44bb44;
                 --snap-edge: #33ccff;
+                --accent-hole: #ff6b6b;
+                --selection-marquee: rgba(51, 153, 255, 0.18);
+                --selection-marquee-border: #3399ff;
+                --badge-add: #40c057;
+                --badge-sub: #ff6b6b;
             }
         }
 
@@ -78,13 +92,30 @@
 
         /* ===== SIDEBAR ===== */
         .sidebar {
-            width: 210px;
+            width: 235px;
             background-color: var(--bg-sidebar);
             border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
             height: 100%;
             flex-shrink: 0;
+        }
+
+        /* Fixed / Anchored Top Toolbar in Sidebar */
+        .sidebar-header {
+            padding: 8px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            background: var(--bg-sidebar);
+            flex-shrink: 0;
+            z-index: 5;
+        }
+
+        .sidebar-header-row {
+            display: flex;
+            gap: 4px;
         }
 
         .controls {
@@ -99,17 +130,146 @@
         .controls::-webkit-scrollbar { width: 3px; }
         .controls::-webkit-scrollbar-thumb { background: var(--border); }
 
+        /* ===== MULTI-SELECTION BANNER ===== */
+        .multi-select-banner {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-active);
+            padding: 6px 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 10px;
+        }
+
+        .multi-select-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+        }
+
+        .multi-select-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+        }
+
+        /* ===== GROUP CONTAINER ===== */
+        .group-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            transition: border-color 0.15s;
+        }
+
+        .group-card.active-group {
+            border-color: var(--border-active);
+        }
+
+        .group-header {
+            padding: 6px 8px;
+            background-color: var(--bg-card-sub);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 4px;
+            font-size: 11px;
+            user-select: none;
+        }
+
+        .group-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .group-collapse-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            padding: 0 2px;
+            font-size: 10px;
+            cursor: pointer;
+            line-line: 1;
+        }
+        .group-collapse-btn:hover {
+            color: var(--text-main);
+            background: none;
+        }
+
+        .group-name-input {
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            font-size: 10px;
+            font-weight: bold;
+            font-family: inherit;
+            width: 100%;
+            padding: 1px 2px;
+            border-radius: 2px;
+        }
+        .group-name-input:focus {
+            background: var(--bg-body);
+            outline: 1px solid var(--border-active);
+        }
+
+        .group-mode-btn {
+            padding: 2px 5px;
+            font-size: 9px;
+            letter-spacing: 0.2px;
+            text-transform: uppercase;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            line-height: 1.1;
+            white-space: nowrap;
+        }
+
+        .group-mode-btn.mode-add {
+            background: transparent;
+            color: var(--badge-add);
+            border-color: var(--badge-add);
+        }
+
+        .group-mode-btn.mode-subtract {
+            background: var(--badge-sub);
+            color: #ffffff;
+            border-color: var(--badge-sub);
+        }
+
+        .group-nodes-list {
+            padding: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .group-nodes-list.collapsed {
+            display: none;
+        }
+
+        .group-empty-msg {
+            text-align: center;
+            padding: 8px 4px;
+            font-size: 9px;
+            color: var(--text-muted);
+            border: 1px dashed var(--border);
+        }
+
         /* ===== PULLEY NODE CARDS ===== */
         .node-card {
             background-color: var(--bg-card);
             border: 1px solid var(--border);
-            padding: 8px;
-            padding-top: 11px;
+            padding: 6px;
+            padding-top: 9px;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 5px;
             position: relative;
-            font-size: 11px;
+            font-size: 10px;
             user-select: none;
             transition: border-color 0.15s, outline 0.15s;
             overflow: hidden;
@@ -162,8 +322,8 @@
             pointer-events: none;
             z-index: 1;
         }
-        .node-card.drag-over::after { bottom: -5px; }
-        .node-card.drag-over-first::before { top: -5px; }
+        .node-card.drag-over::after { bottom: -4px; }
+        .node-card.drag-over-first::before { top: -4px; }
 
         .node-header {
             display: flex;
@@ -177,13 +337,13 @@
             background: var(--btn-bg);
             color: var(--btn-text);
             border: 1px solid var(--border);
-            padding: 5px 8px;
+            padding: 4px 7px;
             font-size: 10px;
             font-weight: bold;
             font-family: inherit;
             cursor: pointer;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.4px;
             transition: background 0.1s, color 0.1s;
         }
 
@@ -203,7 +363,7 @@
         }
 
         .val-input {
-            width: 58px;
+            width: 54px;
             background: var(--bg-body);
             color: var(--text-main);
             border: 1px solid var(--border);
@@ -225,7 +385,7 @@
             background: none;
             border: none;
             color: var(--text-muted);
-            padding: 2px 4px;
+            padding: 1px 3px;
             font-size: 10px;
         }
         .btn-del:hover {
@@ -244,8 +404,8 @@
 
         .side-tile {
             border: none;
-            padding: 2px 6px;
-            font-size: 10px;
+            padding: 1px 5px;
+            font-size: 9px;
             font-family: inherit;
             font-weight: bold;
             background: transparent;
@@ -296,6 +456,39 @@
             display: flex;
             flex-direction: column;
             gap: 6px;
+            background: var(--bg-sidebar);
+            flex-shrink: 0;
+        }
+
+        .filename-row {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 10px;
+        }
+
+        .filename-label {
+            font-weight: bold;
+            color: var(--text-muted);
+            font-size: 9px;
+            text-transform: uppercase;
+        }
+
+        .filename-input {
+            flex: 1;
+            background: var(--bg-card);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 4px 6px;
+            font-size: 10px;
+            font-family: inherit;
+            font-weight: bold;
+            border-radius: 2px;
+        }
+
+        .filename-input:focus {
+            outline: 1px solid var(--border-active);
+            border-color: var(--border-active);
         }
 
         .footer-grid {
@@ -349,8 +542,8 @@
 
         .toolbar button {
             border: none;
-            padding: 4px 8px;
-            font-size: 11px;
+            padding: 4px 7px;
+            font-size: 10px;
         }
 
         .toolbar button:hover {
@@ -358,6 +551,112 @@
             color: var(--btn-hover-text);
         }
 
+        /* ===== MODAL DIALOGS ===== */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.55);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            backdrop-filter: blur(3px);
+        }
+
+        .modal-backdrop.open {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border-active);
+            max-width: 520px;
+            width: 92%;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 12px 36px rgba(0,0,0,0.35);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 6px;
+        }
+
+        .modal-header h3 {
+            font-size: 12px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .tutorial-card {
+            background: var(--bg-card-sub);
+            border: 1px solid var(--border);
+            padding: 9px 11px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 11px;
+            line-height: 1.45;
+        }
+
+        .tutorial-card h4 {
+            font-size: 11px;
+            font-weight: bold;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .tutorial-step-num {
+            background: var(--btn-hover-bg);
+            color: var(--btn-hover-text);
+            font-size: 9px;
+            padding: 1px 5px;
+            border-radius: 2px;
+            font-weight: bold;
+        }
+
+        .tutorial-card p {
+            color: var(--text-main);
+        }
+
+        .modal-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+
+        .modal-table th, .modal-table td {
+            text-align: left;
+            padding: 4px 6px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-table th {
+            color: var(--text-muted);
+            font-size: 9px;
+            text-transform: uppercase;
+        }
+
+        .modal-table kbd {
+            background: var(--bg-sidebar);
+            border: 1px solid var(--border);
+            padding: 1px 4px;
+            border-radius: 2px;
+            font-size: 10px;
+            font-family: inherit;
+        }
 
         /* ===== MOBILE RESPONSIVE ===== */
         @media (max-width: 600px) {
@@ -371,8 +670,8 @@
             .sidebar {
                 width: 100%;
                 height: auto;
-                max-height: 45vh;
-                max-height: 45dvh;
+                max-height: 48vh;
+                max-height: 48dvh;
                 flex-direction: column;
                 border-right: none;
                 border-top: 1px solid var(--border);
@@ -395,26 +694,16 @@
 
             .controls::-webkit-scrollbar { height: 3px; width: auto; }
 
-            #nodeList {
+            #groupsContainer {
+                display: flex;
                 flex-direction: row !important;
+                gap: 8px;
             }
 
-            .node-card {
-                min-width: 170px;
+            .group-card {
+                min-width: 220px;
                 flex-shrink: 0;
             }
-
-            .node-card.drag-over::after,
-            .node-card.drag-over-first::before {
-                top: 0;
-                bottom: 0;
-                left: auto;
-                right: auto;
-                width: 2px;
-                height: auto;
-            }
-            .node-card.drag-over::after { right: -5px; bottom: 0; }
-            .node-card.drag-over-first::before { left: -5px; top: 0; }
 
             .footer {
                 flex-direction: row;
@@ -438,20 +727,51 @@
 </head>
 <body>
     <div class="sidebar">
-        <!-- Controls Container -->
-        <div class="controls">
-            <div id="nodeList" style="display: flex; flex-direction: column; gap: 8px;"></div>
+        <!-- Anchored Top Toolbar -->
+        <div class="sidebar-header">
+            <div class="sidebar-header-row">
+                <button class="btn-block" id="tutorialBtn" title="Tutorial &amp; Guide" style="font-size: 9px;">📖 TUTORIAL</button>
+                <button class="btn-block" id="hotkeysBtn" title="Hotkeys Cheat Sheet (?)" style="font-size: 9px;">⌨️ HOTKEYS</button>
+            </div>
+            <div class="sidebar-header-row">
+                <button class="btn-block" id="addPulleyBtn" title="Add Pulley to Active Group (Hotkey: A)">+ Pulley (A)</button>
+                <button class="btn-block" id="addGroupBtn" title="Add New Group (Hotkey: G)">+ Group (G)</button>
+            </div>
+        </div>
 
-            <button class="btn-block" id="addBtn">+ Add Pulley</button>
+        <!-- Scrollable Controls Container -->
+        <div class="controls">
+            <!-- Multi-selection Quick Panel (Appears when >1 pulleys selected) -->
+            <div id="multiSelectPanel" class="multi-select-banner" style="display: none;">
+                <div class="multi-select-header">
+                    <span id="multiSelectCount">0 selected</span>
+                    <button type="button" class="btn-del" id="deselectAllBtn" title="Deselect All (Esc)">[CLEAR]</button>
+                </div>
+                <div class="multi-select-actions">
+                    <button type="button" id="scaleUpBtn" title="Scale Selection Up (+10%)">SCALE +10%</button>
+                    <button type="button" id="scaleDownBtn" title="Scale Selection Down (-10%)">SCALE -10%</button>
+                    <button type="button" id="radUpBtn" title="Increase Radius by 5px">RADIUS +5</button>
+                    <button type="button" id="radDownBtn" title="Decrease Radius by 5px">RADIUS -5</button>
+                    <button type="button" id="groupSelectedBtn" title="Combine Selection into New Group">NEW GROUP</button>
+                    <button type="button" id="delSelectedBtn" style="color: #ff4444;" title="Delete Selected Pulleys (Del)">DELETE</button>
+                </div>
+            </div>
+
+            <!-- Groups & Pulley Cards Container -->
+            <div id="groupsContainer" style="display: flex; flex-direction: column; gap: 8px;"></div>
         </div>
 
         <!-- Sidebar Footer -->
         <div class="footer">
+            <div class="filename-row">
+                <span class="filename-label">FILENAME</span>
+                <input id="fileNameInput" type="text" class="filename-input" value="" spellcheck="false" title="Type here..">
+            </div>
             <div class="footer-grid">
-                <button id="saveBtn" title="Save Pulley System (JSON)">Save</button>
+                <button id="saveBtn" title="Save Pulley System (JSON / Cmd+S)">Save</button>
                 <button id="importBtn" title="Import Pulley System (JSON)">Import</button>
             </div>
-            <button class="btn-block" id="exportBtn">Export SVG</button>
+            <button class="btn-block" id="exportBtn" title="Export SVG (Cmd+E)">Export SVG</button>
             <input type="file" id="importFileInput" accept=".json" style="display: none;">
         </div>
     </div>
@@ -464,44 +784,202 @@
             <button id="redoBtn" title="Redo (Cmd+Y / Ctrl+Y)" disabled>↻ REDO</button>
             <div style="width: 1px; background: var(--border); margin: 2px 2px;"></div>
             <button id="zoomOutBtn" title="Zoom Out (-)">-</button>
-            <button id="zoomResetBtn" title="Reset Zoom &amp; Pan" style="min-width: 48px;">100%</button>
+            <button id="zoomResetBtn" title="Reset Zoom &amp; Pan (0)" style="min-width: 48px;">100%</button>
             <button id="zoomInBtn" title="Zoom In (+)">+</button>
-            <button id="fitViewBtn" title="Fit View">FIT</button>
+            <button id="fitViewBtn" title="Fit View (F)">FIT</button>
+            <div style="width: 1px; background: var(--border); margin: 2px 2px;"></div>
+            <button id="guideBtn" title="Tutorial &amp; Guide">? GUIDE</button>
         </div>
 
         <div class="canvas-wrap" id="canvasWrap">
             <canvas id="c"></canvas>
         </div>
+    </div>
 
+    <!-- 1. Separate Tutorial Guide Modal -->
+    <div id="tutorialModal" class="modal-backdrop">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Tutorial Guide</h3>
+                <button type="button" class="btn-del" id="closeTutorialModalBtn" title="Close">[X]</button>
+            </div>
 
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <div class="tutorial-card">
+                    <h4><span>1. Pulleys &amp; String Wrap</span> <span class="tutorial-step-num">STEP 1</span></h4>
+                    <p>A string wraps taut around circular pulleys along outer tangents. Toggle <strong>IN (CW)</strong> vs <strong>OUT (CCW)</strong> on each pulley card to create convex arcs, concave waistlines, loops, and figure-8 crossovers.</p>
+                    <p style="margin-top: 4px; color: var(--text-muted); font-size: 10px; border-left: 2px solid var(--border-active); padding-left: 6px;">
+                        <strong>Tip:</strong> Moving a pulley inside or across other pulleys can cause tangent crossovers where the wrap direction needs to change. It is up to you to flip between <strong>IN</strong> and <strong>OUT</strong> to resolve tangles or create concave contours!
+                    </p>
+                </div>
+                <div class="tutorial-card">
+                    <h4><span>2. Groups &amp; Boolean Holes</span> <span class="tutorial-step-num">STEP 2</span></h4>
+                    <p>Create multiple independent pulley shapes with <strong>+ GROUP</strong>. Toggle a group to <strong>- HOLE</strong> to cut crisp vector holes through any shapes beneath it.</p>
+                </div>
+                <div class="tutorial-card">
+                    <h4><span>3. Multi-Selection &amp; Rescaling</span> <span class="tutorial-step-num">STEP 3</span></h4>
+                    <p>Hold <kbd>Shift</kbd> / <kbd>Cmd</kbd> + click or drag a marquee box on empty canvas to select multiple pulleys. Drag to move them in sync, or drag the <strong>corner bounding box handles</strong> to scale positions and radii proportionally.</p>
+                </div>
+                <div class="tutorial-card">
+                    <h4><span>4. Precision Snapping &amp; Nudge</span> <span class="tutorial-step-num">STEP 4</span></h4>
+                    <p>Pulleys automatically snap to grid lines (20px/40px), cell midpoints, and center/edge alignments with other pulleys. Use the <strong>Arrow Keys</strong> (<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd>) to nudge selections with sub-pixel control.</p>
+                </div>
+                <div class="tutorial-card">
+                    <h4><span>5. SVG Vector Export &amp; JSON Save</span> <span class="tutorial-step-num">STEP 5</span></h4>
+                    <p>Type a custom name in the <strong>FILE</strong> box. <strong>Export SVG</strong> generates production-ready vector graphics with native hole masks, ready for Figma, Illustrator, or web usage.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Separate Hotkeys Cheat Sheet Modal -->
+    <div id="hotkeysModal" class="modal-backdrop">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Keyboard Shortcuts</h3>
+                <button type="button" class="btn-del" id="closeHotkeysModalBtn" title="Close">[X]</button>
+            </div>
+
+            <table class="modal-table">
+                <thead>
+                    <tr><th>Action</th><th>Shortcut</th></tr>
+                </thead>
+                <tbody>
+                    <tr><th colspan="2" style="padding-top: 6px; color: var(--text-main);">CREATION &amp; GROUPS</th></tr>
+                    <tr><td>Add Pulley</td><td><kbd>A</kbd> or <kbd>P</kbd> or <kbd>N</kbd></td></tr>
+                    <tr><td>Add Group / Group Selected</td><td><kbd>G</kbd></td></tr>
+                    <tr><th colspan="2" style="padding-top: 6px; color: var(--text-main);">SELECTION &amp; TRANSFORM</th></tr>
+                    <tr><td>Multi-Select Pulleys</td><td><kbd>Shift</kbd> + Click or Box Drag</td></tr>
+                    <tr><td>Select All Pulleys</td><td><kbd>Cmd</kbd>+<kbd>A</kbd> / <kbd>Ctrl</kbd>+<kbd>A</kbd></td></tr>
+                    <tr><td>Deselect All</td><td><kbd>Esc</kbd></td></tr>
+                    <tr><td>Delete Pulley(s)</td><td><kbd>Del</kbd> or <kbd>Backspace</kbd></td></tr>
+                    <tr><td>Nudge Selection</td><td><kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> (<kbd>Shift</kbd>=10px)</td></tr>
+                    <tr><td>Adjust Radius</td><td><kbd>[</kbd> / <kbd>]</kbd></td></tr>
+                    <tr><th colspan="2" style="padding-top: 6px; color: var(--text-main);">CANVAS NAVIGATION</th></tr>
+                    <tr><td>Pan Canvas</td><td><kbd>Space</kbd> + Drag</td></tr>
+                    <tr><td>Zoom In / Out</td><td><kbd>+</kbd> / <kbd>-</kbd> or Mouse Wheel</td></tr>
+                    <tr><td>Fit View</td><td><kbd>F</kbd></td></tr>
+                    <tr><td>Reset Zoom (100%)</td><td><kbd>0</kbd></td></tr>
+                    <tr><th colspan="2" style="padding-top: 6px; color: var(--text-main);">HISTORY &amp; FILE</th></tr>
+                    <tr><td>Undo / Redo</td><td><kbd>Cmd</kbd>+<kbd>Z</kbd> / <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd></td></tr>
+                    <tr><td>Save JSON Project</td><td><kbd>Cmd</kbd>+<kbd>S</kbd></td></tr>
+                    <tr><td>Export SVG Vector</td><td><kbd>Cmd</kbd>+<kbd>E</kbd></td></tr>
+                    <tr><td>Toggle Hotkeys</td><td><kbd>?</kbd> or <kbd>H</kbd></td></tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <script>
         const canvas = document.getElementById('c');
         const ctx = canvas.getContext('2d');
-        const nodeList = document.getElementById('nodeList');
+        const groupsContainer = document.getElementById('groupsContainer');
         const canvasWrap = document.getElementById('canvasWrap');
         const zoomResetBtn = document.getElementById('zoomResetBtn');
         const undoBtn = document.getElementById('undoBtn');
         const redoBtn = document.getElementById('redoBtn');
+        const multiSelectPanel = document.getElementById('multiSelectPanel');
+        const multiSelectCount = document.getElementById('multiSelectCount');
+        const fileNameInput = document.getElementById('fileNameInput');
+        const tutorialModal = document.getElementById('tutorialModal');
+        const hotkeysModal = document.getElementById('hotkeysModal');
 
-        let nodes = [];
-        let nextId = 1;
-        let selectedId = null;
+        // Offscreen canvas for boolean subtraction
+        let offscreenCanvas = null;
+        let offscreenCtx = null;
 
-        // Node drag state
+        function getOffscreen(w, h) {
+            if (!offscreenCanvas) {
+                offscreenCanvas = document.createElement('canvas');
+                offscreenCtx = offscreenCanvas.getContext('2d');
+            }
+            if (offscreenCanvas.width !== w || offscreenCanvas.height !== h) {
+                offscreenCanvas.width = w;
+                offscreenCanvas.height = h;
+            }
+            return { offscreenCanvas, offscreenCtx };
+        }
+
+        // ===== STATE MANAGEMENT =====
+        let groups = [
+            {
+                id: 1,
+                name: 'Group 1',
+                mode: 'add', // 'add' (positive shape) | 'subtract' (hole cutout)
+                collapsed: false,
+                nodes: []
+            }
+        ];
+
+        let nextNodeId = 1;
+        let nextGroupId = 2;
+        let activeGroupId = 1;
+        let selectedIds = new Set();
+
+        // Drag & Transform state
         let isDragging = false;
         let dragOff = { x: 0, y: 0 };
+        let dragInitialPositions = new Map(); // id -> { x, y, r }
         let dragInitialState = null;
+        let draggedNodeId = null;
         let guides = [];
+
+        // Marquee selection box state
+        let isMarquee = false;
+        let marqueeStart = { x: 0, y: 0 };
+        let marqueeCurrent = { x: 0, y: 0 };
+
+        // Canvas Scale Handle state
+        let isScaling = false;
+        let activeScaleHandle = null; // 'tl','tr','br','bl','tm','bm','lm','rm'
+        let initialScaleBounds = null;
+        let initialScaleAnchor = null;
 
         // History state (Undo / Redo)
         let undoStack = [];
         let redoStack = [];
         const MAX_HISTORY = 50;
 
+        function getAllNodes() {
+            const list = [];
+            for (const g of groups) {
+                for (const n of g.nodes) {
+                    list.push(n);
+                }
+            }
+            return list;
+        }
+
+        function findNode(id) {
+            for (const g of groups) {
+                const idx = g.nodes.findIndex(n => n.id === id);
+                if (idx !== -1) {
+                    return { node: g.nodes[idx], group: g, index: idx };
+                }
+            }
+            return null;
+        }
+
+        function findGroup(groupId) {
+            return groups.find(g => g.id === groupId) || null;
+        }
+
+        function getSelectedNodes() {
+            return getAllNodes().filter(n => selectedIds.has(n.id));
+        }
+
+        function ensureActiveGroup() {
+            if (!groups.some(g => g.id === activeGroupId)) {
+                activeGroupId = groups.length > 0 ? groups[0].id : null;
+            }
+        }
+
         function getSnapshot() {
-            return JSON.stringify(nodes);
+            return JSON.stringify({
+                groups,
+                selectedIds: Array.from(selectedIds),
+                activeGroupId
+            });
         }
 
         function updateUndoRedoUI() {
@@ -527,10 +1005,11 @@
             const current = getSnapshot();
             redoStack.push(current);
             const previous = undoStack.pop();
-            nodes = JSON.parse(previous);
-            if (selectedId !== null && !nodes.some(n => n.id === selectedId)) {
-                selectedId = nodes.length > 0 ? nodes[0].id : null;
-            }
+            const state = JSON.parse(previous);
+            groups = state.groups || [];
+            selectedIds = new Set(state.selectedIds || []);
+            activeGroupId = state.activeGroupId || (groups[0] ? groups[0].id : 1);
+            ensureActiveGroup();
             updateUndoRedoUI();
             renderUI();
             draw();
@@ -541,10 +1020,11 @@
             const current = getSnapshot();
             undoStack.push(current);
             const next = redoStack.pop();
-            nodes = JSON.parse(next);
-            if (selectedId !== null && !nodes.some(n => n.id === selectedId)) {
-                selectedId = nodes.length > 0 ? nodes[0].id : null;
-            }
+            const state = JSON.parse(next);
+            groups = state.groups || [];
+            selectedIds = new Set(state.selectedIds || []);
+            activeGroupId = state.activeGroupId || (groups[0] ? groups[0].id : 1);
+            ensureActiveGroup();
             updateUndoRedoUI();
             renderUI();
             draw();
@@ -555,7 +1035,7 @@
         let panX = 0;
         let panY = 0;
         let isPanning = false;
-        let panStart = { x: 0, y: 0 };
+        panStart = { x: 0, y: 0 };
         let isSpacePressed = false;
         let initialViewDone = false;
 
@@ -574,7 +1054,6 @@
         function generateLegibleColor() {
             const hue = Math.floor(Math.random() * 360);
             const saturation = 75 + Math.floor(Math.random() * 20);
-            
             let lightness = 48;
             if (hue >= 40 && hue <= 80) {
                 lightness = 38 + Math.floor(Math.random() * 6);
@@ -583,7 +1062,6 @@
             } else {
                 lightness = 45 + Math.floor(Math.random() * 8);
             }
-            
             return hslToHex(hue, saturation, lightness);
         }
 
@@ -601,12 +1079,18 @@
                 shapeFill: isLight ? '#000000' : '#ffffff',
                 guideUnselected: isLight ? 'rgba(220, 50, 47, 0.8)' : 'rgba(255, 85, 85, 0.85)',
                 guideSelected: isLight ? '#0066cc' : '#3399ff',
+                guideHole: isLight ? '#d9383a' : '#ff6b6b',
                 centerDotUnselected: isLight ? 'rgba(220, 50, 47, 0.9)' : 'rgba(255, 85, 85, 0.9)',
                 centerDotSelected: isLight ? '#0066cc' : '#3399ff',
                 snapGuideCenter: isLight ? '#008800' : '#44bb44',
                 snapGuideEdge: isLight ? '#0088cc' : '#33ccff',
                 snapGuideGrid: isLight ? '#8b5cf6' : '#a855f7',
                 snapGuideMidpoint: isLight ? '#d97706' : '#fbbf24',
+                marqueeBg: isLight ? 'rgba(0, 102, 204, 0.1)' : 'rgba(51, 153, 255, 0.15)',
+                marqueeBorder: isLight ? '#0066cc' : '#3399ff',
+                boundsBorder: isLight ? '#0066cc' : '#3399ff',
+                handleFill: isLight ? '#ffffff' : '#1e1e1e',
+                handleBorder: isLight ? '#0066cc' : '#3399ff'
             };
         }
 
@@ -634,7 +1118,6 @@
             const r = canvas.getBoundingClientRect();
             const cssX = (e.clientX - r.left);
             const cssY = (e.clientY - r.top);
-
             return {
                 x: (cssX - panX) / zoom,
                 y: (cssY - panY) / zoom
@@ -673,8 +1156,9 @@
             const wrapRect = canvasWrap.getBoundingClientRect();
             const w = wrapRect.width || 800;
             const h = wrapRect.height || 600;
+            const allNodes = getAllNodes();
 
-            if (nodes.length === 0) {
+            if (allNodes.length === 0) {
                 zoom = 1.0;
                 panX = 0;
                 panY = 0;
@@ -684,7 +1168,7 @@
             }
 
             let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-            nodes.forEach(n => {
+            allNodes.forEach(n => {
                 if (n.x - n.r < minX) minX = n.x - n.r;
                 if (n.x + n.r > maxX) maxX = n.x + n.r;
                 if (n.y - n.r < minY) minY = n.y - n.r;
@@ -754,47 +1238,243 @@
             return { t1: { x: t1x, y: t1y }, t2: { x: t2x, y: t2y }, angle };
         }
 
-        function buildStringPath() {
-            if (nodes.length < 2) return null;
-
-            const n = nodes.length;
+        function buildStringPathForNodes(nodesList) {
+            if (!nodesList || nodesList.length < 2) return null;
+            const n = nodesList.length;
             const segments = [];
-
             for (let i = 0; i < n; i++) {
-                const a = nodes[i];
-                const b = nodes[(i + 1) % n];
+                const a = nodesList[i];
+                const b = nodesList[(i + 1) % n];
                 const seg = tangentSegment(a.x, a.y, a.r, a.side, b.x, b.y, b.r, b.side);
                 segments.push(seg);
             }
-
             return segments;
         }
 
-        // ===== UI =====
-        window.deleteNode = function(id) {
+        function renderPathOnContext(targetCtx, nodesList, segments) {
+            if (!segments || nodesList.length < 2) return;
+            for (let i = 0; i < nodesList.length; i++) {
+                const seg = segments[i];
+                const nextSeg = segments[(i + 1) % nodesList.length];
+                const node = nodesList[(i + 1) % nodesList.length];
+
+                if (i === 0 && seg) {
+                    targetCtx.moveTo(seg.t1.x, seg.t1.y);
+                }
+                if (seg) {
+                    targetCtx.lineTo(seg.t2.x, seg.t2.y);
+                }
+                if (seg && nextSeg) {
+                    const arrivalAngle = Math.atan2(seg.t2.y - node.y, seg.t2.x - node.x);
+                    const departAngle = Math.atan2(nextSeg.t1.y - node.y, nextSeg.t1.x - node.x);
+                    const ccw = node.side === 1;
+                    targetCtx.arc(node.x, node.y, node.r, arrivalAngle, departAngle, ccw);
+                }
+            }
+        }
+
+        function buildGroupSVGPath(group) {
+            if (!group || !group.nodes || group.nodes.length === 0) return '';
+            if (group.nodes.length === 1) {
+                const n = group.nodes[0];
+                const cx = n.x, cy = n.y, r = n.r;
+                return `M ${(cx + r).toFixed(2)} ${cy.toFixed(2)} ` +
+                    `A ${r.toFixed(2)} ${r.toFixed(2)} 0 1 1 ${(cx - r).toFixed(2)} ${cy.toFixed(2)} ` +
+                    `A ${r.toFixed(2)} ${r.toFixed(2)} 0 1 1 ${(cx + r).toFixed(2)} ${cy.toFixed(2)} Z`;
+            }
+
+            const segments = buildStringPathForNodes(group.nodes);
+            if (!segments) return '';
+
+            let d = '';
+            for (let i = 0; i < group.nodes.length; i++) {
+                const seg = segments[i];
+                const nextSeg = segments[(i + 1) % group.nodes.length];
+                const node = group.nodes[(i + 1) % group.nodes.length];
+
+                if (i === 0 && seg) {
+                    d += `M ${seg.t1.x.toFixed(2)} ${seg.t1.y.toFixed(2)} `;
+                }
+                if (seg) {
+                    d += `L ${seg.t2.x.toFixed(2)} ${seg.t2.y.toFixed(2)} `;
+                }
+                if (seg && nextSeg) {
+                    const arrivalAngle = Math.atan2(seg.t2.y - node.y, seg.t2.x - node.x);
+                    const departAngle = Math.atan2(nextSeg.t1.y - node.y, nextSeg.t1.x - node.x);
+                    const sweepCW = node.side === 1;
+                    let arcAngle = departAngle - arrivalAngle;
+
+                    if (sweepCW) {
+                        if (arcAngle > 0) arcAngle -= 2 * Math.PI;
+                    } else {
+                        if (arcAngle < 0) arcAngle += 2 * Math.PI;
+                    }
+
+                    const largeArc = Math.abs(arcAngle) > Math.PI ? 1 : 0;
+                    const sweepFlag = sweepCW ? 0 : 1;
+                    const endX = node.x + node.r * Math.cos(departAngle);
+                    const endY = node.y + node.r * Math.sin(departAngle);
+
+                    d += `A ${node.r.toFixed(2)} ${node.r.toFixed(2)} 0 ${largeArc} ${sweepFlag} ${endX.toFixed(2)} ${endY.toFixed(2)} `;
+                }
+            }
+            d += 'Z';
+            return d;
+        }
+
+        // ===== SELECTION BOUNDS & TRANSFORMS =====
+        function getSelectionBounds() {
+            const selected = getSelectedNodes();
+            if (selected.length < 2) return null;
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            selected.forEach(n => {
+                if (n.x - n.r < minX) minX = n.x - n.r;
+                if (n.x + n.r > maxX) maxX = n.x + n.r;
+                if (n.y - n.r < minY) minY = n.y - n.r;
+                if (n.y + n.r > maxY) maxY = n.y + n.r;
+            });
+            return {
+                minX, minY, maxX, maxY,
+                width: maxX - minX,
+                height: maxY - minY,
+                cx: (minX + maxX) / 2,
+                cy: (minY + maxY) / 2
+            };
+        }
+
+        function scaleSelection(multiplier) {
+            const selected = getSelectedNodes();
+            if (selected.length === 0) return;
             saveHistory();
-            nodes = nodes.filter(n => n.id !== id);
-            if (selectedId === id) selectedId = null;
+
+            if (selected.length === 1) {
+                const n = selected[0];
+                n.r = Math.max(2, Math.round(n.r * multiplier));
+            } else {
+                const bounds = getSelectionBounds();
+                const cx = bounds.cx;
+                const cy = bounds.cy;
+                selected.forEach(n => {
+                    n.x = Math.round(cx + (n.x - cx) * multiplier);
+                    n.y = Math.round(cy + (n.y - cy) * multiplier);
+                    n.r = Math.max(2, Math.round(n.r * multiplier));
+                });
+            }
             renderUI();
             draw();
-        };
+        }
 
-        window.setSide = function(id, side) {
-            const n = nodes.find(x => x.id === id);
-            if (n && n.side !== side) {
+        function adjustSelectionRadius(delta) {
+            const selected = getSelectedNodes();
+            if (selected.length === 0) return;
+            saveHistory();
+            selected.forEach(n => {
+                n.r = Math.max(2, Math.round(n.r + delta));
+            });
+            renderUI();
+            draw();
+        }
+
+        function nudgeSelection(dx, dy) {
+            const selected = getSelectedNodes();
+            if (selected.length === 0) return;
+            saveHistory();
+            selected.forEach(n => {
+                n.x += dx;
+                n.y += dy;
+            });
+            renderUI();
+            draw();
+        }
+
+        function deleteSelectedNodes() {
+            const selected = getSelectedNodes();
+            if (selected.length === 0) return;
+            saveHistory();
+            const idsToDelete = new Set(selected.map(n => n.id));
+            groups.forEach(g => {
+                g.nodes = g.nodes.filter(n => !idsToDelete.has(n.id));
+            });
+            selectedIds.clear();
+            renderUI();
+            draw();
+        }
+
+        function groupSelectedNodes() {
+            const selected = getSelectedNodes();
+            if (selected.length === 0) return;
+            saveHistory();
+            const newGroup = {
+                id: nextGroupId++,
+                name: `Group ${groups.length + 1}`,
+                mode: 'add',
+                collapsed: false,
+                nodes: []
+            };
+
+            const idsToMove = new Set(selected.map(n => n.id));
+            groups.forEach(g => {
+                g.nodes = g.nodes.filter(n => {
+                    if (idsToMove.has(n.id)) {
+                        newGroup.nodes.push(n);
+                        return false;
+                    }
+                    return true;
+                });
+            });
+
+            groups.push(newGroup);
+            activeGroupId = newGroup.id;
+            renderUI();
+            draw();
+        }
+
+        // ===== MODAL CONTROLS =====
+        function openTutorialModal() {
+            if (tutorialModal) tutorialModal.classList.add('open');
+            if (hotkeysModal) hotkeysModal.classList.remove('open');
+        }
+
+        function closeTutorialModal() {
+            if (tutorialModal) tutorialModal.classList.remove('open');
+        }
+
+        function openHotkeysModal() {
+            if (hotkeysModal) hotkeysModal.classList.add('open');
+            if (tutorialModal) tutorialModal.classList.remove('open');
+        }
+
+        function closeHotkeysModal() {
+            if (hotkeysModal) hotkeysModal.classList.remove('open');
+        }
+
+        // ===== UI ACTIONS =====
+        function deleteNode(id) {
+            saveHistory();
+            groups.forEach(g => {
+                g.nodes = g.nodes.filter(n => n.id !== id);
+            });
+            selectedIds.delete(id);
+            renderUI();
+            draw();
+        }
+
+        function setSide(id, side) {
+            const res = findNode(id);
+            if (res && res.node.side !== side) {
                 saveHistory();
-                n.side = side;
+                res.node.side = side;
                 renderUI();
                 draw();
             }
-        };
+        }
 
-        window.updateR = function(id, val, el) {
-            const n = nodes.find(x => x.id === id);
-            if (n) {
+        function updateR(id, val, el) {
+            const res = findNode(id);
+            if (res) {
                 const num = parseFloat(val);
                 if (!isNaN(num) && num > 0) {
-                    n.r = num;
+                    res.node.r = num;
                     if (el) {
                         const card = el.closest('.node-card');
                         if (card) {
@@ -807,17 +1487,15 @@
                     draw();
                 }
             }
-        };
+        }
 
-        window.updateRNumber = function(id, val, commitHistory, el) {
-            const n = nodes.find(x => x.id === id);
-            if (n) {
+        function updateRNumber(id, val, commitHistory, el) {
+            const res = findNode(id);
+            if (res) {
                 const num = parseFloat(val);
                 if (!isNaN(num) && num > 0) {
-                    if (commitHistory) {
-                        saveHistory();
-                    }
-                    n.r = num;
+                    if (commitHistory) saveHistory();
+                    res.node.r = num;
                     if (el) {
                         const card = el.closest('.node-card');
                         if (card) {
@@ -830,170 +1508,398 @@
                     draw();
                 }
             }
-        };
+        }
 
+        function toggleGroupCollapse(groupId) {
+            const g = findGroup(groupId);
+            if (g) {
+                g.collapsed = !g.collapsed;
+                renderUI();
+            }
+        }
+
+        function toggleGroupMode(groupId) {
+            const g = findGroup(groupId);
+            if (g) {
+                saveHistory();
+                g.mode = g.mode === 'add' ? 'subtract' : 'add';
+                renderUI();
+                draw();
+            }
+        }
+
+        function setGroupName(groupId, name) {
+            const g = findGroup(groupId);
+            if (g && name.trim()) {
+                g.name = name.trim();
+            }
+        }
+
+        function deleteGroup(groupId) {
+            if (groups.length <= 1) {
+                // Clear group nodes rather than deleting last group
+                saveHistory();
+                groups[0].nodes = [];
+                selectedIds.clear();
+                renderUI();
+                draw();
+                return;
+            }
+            saveHistory();
+            const group = findGroup(groupId);
+            if (group) {
+                group.nodes.forEach(n => selectedIds.delete(n.id));
+            }
+            groups = groups.filter(g => g.id !== groupId);
+            ensureActiveGroup();
+            renderUI();
+            draw();
+        }
+
+        function addPulleyToGroup(targetGroupId) {
+            saveHistory();
+            let group = findGroup(targetGroupId);
+            if (!group) {
+                if (groups.length === 0) {
+                    group = { id: nextGroupId++, name: 'Group 1', mode: 'add', collapsed: false, nodes: [] };
+                    groups.push(group);
+                } else {
+                    group = groups[0];
+                }
+            }
+            activeGroupId = group.id;
+
+            const id = nextNodeId++;
+            const wrapRect = canvasWrap.getBoundingClientRect();
+            const centerWorld = mousePos({
+                clientX: wrapRect.left + wrapRect.width / 2,
+                clientY: wrapRect.top + wrapRect.height / 2
+            });
+
+            const newNode = { id, x: 0, y: 0, r: 60, side: 1, color: generateLegibleColor() };
+
+            const allNodes = getAllNodes();
+            if (allNodes.length === 0) {
+                newNode.x = Math.round(centerWorld.x);
+                newNode.y = Math.round(centerWorld.y);
+                group.nodes.push(newNode);
+            } else {
+                let targetNode = null;
+                if (selectedIds.size > 0) {
+                    const firstSelectedId = selectedIds.values().next().value;
+                    const res = findNode(firstSelectedId);
+                    if (res) targetNode = res.node;
+                }
+                if (!targetNode) {
+                    targetNode = group.nodes[group.nodes.length - 1] || allNodes[allNodes.length - 1];
+                }
+
+                const otherNodes = allNodes.filter(n => n.id !== targetNode.id);
+                let spawnX, spawnY;
+
+                if (otherNodes.length === 0) {
+                    spawnX = Math.round(targetNode.x + targetNode.r + 60 + 20);
+                    spawnY = Math.round(targetNode.y);
+                } else {
+                    let nearestNode = otherNodes[0];
+                    let minSq = Infinity;
+                    for (const o of otherNodes) {
+                        const sq = (o.x - targetNode.x) ** 2 + (o.y - targetNode.y) ** 2;
+                        if (sq < minSq) { minSq = sq; nearestNode = o; }
+                    }
+
+                    function isPositionValid(px, py) {
+                        for (const o of allNodes) {
+                            const minDist = o.r + 60 + 5;
+                            if (Math.hypot(px - o.x, py - o.y) < minDist) return false;
+                        }
+                        return true;
+                    }
+
+                    const midX = Math.round((targetNode.x + nearestNode.x) / 2);
+                    const midY = Math.round((targetNode.y + nearestNode.y) / 2);
+
+                    if (isPositionValid(midX, midY)) {
+                        spawnX = midX;
+                        spawnY = midY;
+                    } else {
+                        const baseAngle = Math.atan2(nearestNode.y - targetNode.y, nearestNode.x - targetNode.x);
+                        const radiusDist = targetNode.r + 60 + 15;
+                        let foundPos = null;
+
+                        const anglesToTry = [];
+                        for (let i = 0; i < 16; i++) {
+                            const step = Math.floor((i + 1) / 2) * (i % 2 === 0 ? 1 : -1);
+                            anglesToTry.push(baseAngle + (step * Math.PI / 8));
+                        }
+
+                        for (const ang of anglesToTry) {
+                            const testX = Math.round(targetNode.x + radiusDist * Math.cos(ang));
+                            const testY = Math.round(targetNode.y + radiusDist * Math.sin(ang));
+                            if (isPositionValid(testX, testY)) {
+                                foundPos = { x: testX, y: testY };
+                                break;
+                            }
+                        }
+
+                        if (foundPos) {
+                            spawnX = foundPos.x;
+                            spawnY = foundPos.y;
+                        } else {
+                            spawnX = Math.round(targetNode.x + targetNode.r + 60 + 20);
+                            spawnY = Math.round(targetNode.y);
+                        }
+                    }
+                }
+
+                newNode.x = spawnX;
+                newNode.y = spawnY;
+                newNode.r = 60;
+                newNode.side = 1;
+
+                const targetIdx = group.nodes.indexOf(targetNode);
+                if (targetIdx !== -1) {
+                    group.nodes.splice(targetIdx + 1, 0, newNode);
+                } else {
+                    group.nodes.push(newNode);
+                }
+            }
+
+            selectedIds.clear();
+            selectedIds.add(id);
+            renderUI();
+            draw();
+        }
+
+        function addNewGroup() {
+            saveHistory();
+            const id = nextGroupId++;
+            const newGroup = {
+                id,
+                name: `Group ${groups.length + 1}`,
+                mode: 'add',
+                collapsed: false,
+                nodes: []
+            };
+            groups.push(newGroup);
+            activeGroupId = id;
+            addPulleyToGroup(id);
+        }
+
+        window.deleteNode = deleteNode;
+        window.setSide = setSide;
+        window.updateR = updateR;
+        window.updateRNumber = updateRNumber;
+        window.toggleGroupCollapse = toggleGroupCollapse;
+        window.toggleGroupMode = toggleGroupMode;
+        window.setGroupName = setGroupName;
+        window.deleteGroup = deleteGroup;
+        window.addPulleyToGroup = addPulleyToGroup;
+        window.addNewGroup = addNewGroup;
+
+        // ===== RENDER UI =====
         function renderUI() {
-            nodeList.innerHTML = '';
+            ensureActiveGroup();
+            groupsContainer.innerHTML = '';
 
-            if (nodes.length === 0) {
-                nodeList.innerHTML = '<div class="empty-msg">NO PULLEYS.<br>ADD PULLEYS TO BEGIN.</div>';
+            // Multi-selection panel
+            const selCount = selectedIds.size;
+            if (selCount > 1) {
+                multiSelectPanel.style.display = 'flex';
+                multiSelectCount.innerText = `${selCount} pulleys selected`;
+            } else {
+                multiSelectPanel.style.display = 'none';
+            }
+
+            if (groups.length === 0) {
+                groupsContainer.innerHTML = '<div class="empty-msg">NO GROUPS.<br>CLICK "+ GROUP" TO BEGIN.</div>';
                 return;
             }
 
-            nodes.forEach((n, i) => {
-                if (!n.color) n.color = generateLegibleColor();
-                const card = document.createElement('div');
-                card.className = 'node-card' + (selectedId === n.id ? ' selected' : '');
-                card.dataset.index = i;
-                card.innerHTML = `
-                    <div class="node-color-bar" style="background-color: ${n.color};"></div>
-                    <div class="node-header">
-                        <div style="display: flex; align-items: center; gap: 6px;">
-                            <div class="drag-handle" draggable="true" title="Drag to reorder">
-                                <svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor">
-                                    <circle cx="3" cy="3" r="1.2"/>
-                                    <circle cx="7" cy="3" r="1.2"/>
-                                    <circle cx="3" cy="7" r="1.2"/>
-                                    <circle cx="7" cy="7" r="1.2"/>
-                                    <circle cx="3" cy="11" r="1.2"/>
-                                    <circle cx="7" cy="11" r="1.2"/>
-                                </svg>
-                            </div>
-                            <div class="side-toggle-minimal">
-                                <button type="button" class="side-tile ${n.side === 1 ? 'active' : ''}" onclick="setSide(${n.id}, 1)" title="In (CW)">in</button>
-                                <button type="button" class="side-tile ${n.side === -1 ? 'active' : ''}" onclick="setSide(${n.id}, -1)" title="Out (CCW)">out</button>
-                            </div>
-                        </div>
-                        <button type="button" class="btn-del" onclick="deleteNode(${n.id})" title="Delete Pulley">[X]</button>
+            groups.forEach((g) => {
+                const groupCard = document.createElement('div');
+                groupCard.className = 'group-card' + (activeGroupId === g.id ? ' active-group' : '');
+                groupCard.dataset.groupId = g.id;
+
+                const isCollapsed = g.collapsed;
+                const nodeCount = g.nodes.length;
+                const modeLabel = g.mode === 'subtract' ? '- HOLE' : '+ SHAPE';
+                const modeClass = g.mode === 'subtract' ? 'mode-subtract' : 'mode-add';
+
+                const groupHeader = document.createElement('div');
+                groupHeader.className = 'group-header';
+                groupHeader.innerHTML = `
+                    <div class="group-title-wrap">
+                        <button type="button" class="group-collapse-btn" onclick="toggleGroupCollapse(${g.id})" title="${isCollapsed ? 'Expand' : 'Collapse'}">${isCollapsed ? '▸' : '▾'}</button>
+                        <input type="text" class="group-name-input" value="${g.name}" onchange="setGroupName(${g.id}, this.value)" title="Click to rename group">
                     </div>
-                    <div>
-                        <div class="row">
-                            <span>Radius</span>
-                            <input type="number" class="val-input" min="1" max="2000" step="any" value="${n.r}" onchange="updateRNumber(${n.id}, this.value, true, this)" oninput="updateRNumber(${n.id}, this.value, false, this)" title="Type specific radius value">
-                        </div>
-                        <input type="range" min="10" max="300" value="${Math.min(Math.max(n.r, 10), 300)}" onmousedown="saveHistory()" ontouchstart="saveHistory()" oninput="updateR(${n.id}, this.value, this)">
+                    <div style="display: flex; align-items: center; gap: 3px;">
+                        <button type="button" class="group-mode-btn ${modeClass}" onclick="toggleGroupMode(${g.id})" title="Toggle Shape (Additive) / Hole (Subtractive)">${modeLabel}</button>
+                        <button type="button" class="btn-del" onclick="addPulleyToGroup(${g.id})" title="Add Pulley to this Group">+</button>
+                        <button type="button" class="btn-del" onclick="deleteGroup(${g.id})" title="Delete Group">[X]</button>
                     </div>
                 `;
 
-                card.addEventListener('mousedown', (e) => {
-                    if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.closest('button') || e.target.closest('input') || e.target.closest('.drag-handle')) return;
-                    selectedId = n.id;
-                    renderUI();
-                    draw();
-                });
-
-                card.addEventListener('dragstart', (e) => {
-                    if (!e.target.closest('.drag-handle')) {
-                        e.preventDefault();
-                        return;
-                    }
-                    e.dataTransfer.effectAllowed = 'move';
-                    e.dataTransfer.setData('text/plain', i.toString());
-                    if (e.dataTransfer.setDragImage) {
-                        e.dataTransfer.setDragImage(card, 10, 10);
-                    }
-                    requestAnimationFrame(() => card.classList.add('dragging'));
-                });
-
-                const clearDragIndicators = () => nodeList.querySelectorAll('.node-card').forEach(c => c.classList.remove('drag-over', 'drag-over-first'));
-
-                card.addEventListener('dragend', () => {
-                    card.classList.remove('dragging');
-                    clearDragIndicators();
-                });
-
-                card.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    e.dataTransfer.dropEffect = 'move';
-                    clearDragIndicators();
-                    const rect = card.getBoundingClientRect();
-                    const horiz = window.matchMedia('(max-width: 600px)').matches;
-                    const before = horiz ? e.clientX < rect.left + rect.width / 2 : e.clientY < rect.top + rect.height / 2;
-                    if (before) {
-                        const prev = card.previousElementSibling;
-                        (prev || card).classList.add(prev ? 'drag-over' : 'drag-over-first');
+                groupHeader.addEventListener('click', (e) => {
+                    if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return;
+                    activeGroupId = g.id;
+                    if (e.shiftKey || e.metaKey || e.ctrlKey) {
+                        g.nodes.forEach(n => selectedIds.add(n.id));
                     } else {
-                        card.classList.add('drag-over');
+                        selectedIds.clear();
+                        g.nodes.forEach(n => selectedIds.add(n.id));
                     }
-                });
-
-                card.addEventListener('dragleave', () => {
-                    card.classList.remove('drag-over', 'drag-over-first');
-                });
-
-                card.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    clearDragIndicators();
-                    const fromIndex = parseInt(e.dataTransfer.getData('text/plain'), 10);
-                    if (isNaN(fromIndex)) return;
-                    let toIndex = parseInt(card.dataset.index, 10);
-                    const rect = card.getBoundingClientRect();
-                    const horiz = window.matchMedia('(max-width: 600px)').matches;
-                    const after = horiz ? e.clientX >= rect.left + rect.width / 2 : e.clientY >= rect.top + rect.height / 2;
-                    if (after) toIndex += 1;
-                    if (fromIndex === toIndex || fromIndex === toIndex - 1) return;
-                    saveHistory();
-                    const [moved] = nodes.splice(fromIndex, 1);
-                    nodes.splice(fromIndex < toIndex ? toIndex - 1 : toIndex, 0, moved);
                     renderUI();
                     draw();
                 });
 
-                const dragHandle = card.querySelector('.drag-handle');
-                if (dragHandle) {
-                    dragHandle.addEventListener('touchstart', (e) => {
-                        const touch = e.touches[0];
-                        touchCardDrag = {
-                            fromIndex: i,
-                            targetIndex: i
-                        };
-                        card.classList.add('dragging');
-                        e.stopPropagation();
-                    }, { passive: true });
+                groupCard.appendChild(groupHeader);
 
-                    dragHandle.addEventListener('touchmove', (e) => {
-                        if (!touchCardDrag) return;
-                        const touch = e.touches[0];
-                        const targetElem = document.elementFromPoint(touch.clientX, touch.clientY);
-                        const targetCard = targetElem ? targetElem.closest('.node-card') : null;
-                        clearDragIndicators();
+                const nodesListDiv = document.createElement('div');
+                nodesListDiv.className = 'group-nodes-list' + (isCollapsed ? ' collapsed' : '');
+                nodesListDiv.dataset.groupId = g.id;
 
-                        if (targetCard && targetCard !== card) {
-                            const rect = targetCard.getBoundingClientRect();
-                            const horiz = window.matchMedia('(max-width: 600px)').matches;
-                            const after = horiz ? touch.clientX >= rect.left + rect.width / 2 : touch.clientY >= rect.top + rect.height / 2;
-                            const idx = parseInt(targetCard.dataset.index, 10);
-                            touchCardDrag.targetIndex = after ? idx + 1 : idx;
+                if (nodeCount === 0) {
+                    nodesListDiv.innerHTML = `<div class="group-empty-msg">EMPTY GROUP<br><button type="button" style="margin-top: 4px;" onclick="addPulleyToGroup(${g.id})">+ Add Pulley</button></div>`;
+                } else {
+                    g.nodes.forEach((n, i) => {
+                        if (!n.color) n.color = generateLegibleColor();
+                        const isSelected = selectedIds.has(n.id);
 
-                            if (after) {
-                                targetCard.classList.add('drag-over');
+                        const card = document.createElement('div');
+                        card.className = 'node-card' + (isSelected ? ' selected' : '');
+                        card.dataset.nodeId = n.id;
+                        card.dataset.groupId = g.id;
+                        card.dataset.index = i;
+
+                        card.innerHTML = `
+                            <div class="node-color-bar" style="background-color: ${n.color};"></div>
+                            <div class="node-header">
+                                <div style="display: flex; align-items: center; gap: 4px;">
+                                    <div class="drag-handle" draggable="true" title="Drag to reorder">
+                                        <svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor">
+                                            <circle cx="3" cy="3" r="1.2"/>
+                                            <circle cx="7" cy="3" r="1.2"/>
+                                            <circle cx="3" cy="7" r="1.2"/>
+                                            <circle cx="7" cy="7" r="1.2"/>
+                                            <circle cx="3" cy="11" r="1.2"/>
+                                            <circle cx="7" cy="11" r="1.2"/>
+                                        </svg>
+                                    </div>
+                                    <div class="side-toggle-minimal">
+                                        <button type="button" class="side-tile ${n.side === 1 ? 'active' : ''}" onclick="setSide(${n.id}, 1)" title="In (CW)">in</button>
+                                        <button type="button" class="side-tile ${n.side === -1 ? 'active' : ''}" onclick="setSide(${n.id}, -1)" title="Out (CCW)">out</button>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn-del" onclick="deleteNode(${n.id})" title="Delete Pulley">[X]</button>
+                            </div>
+                            <div>
+                                <div class="row">
+                                    <span>Radius</span>
+                                    <input type="number" class="val-input" min="1" max="2000" step="any" value="${n.r}" onchange="updateRNumber(${n.id}, this.value, true, this)" oninput="updateRNumber(${n.id}, this.value, false, this)" title="Type radius">
+                                </div>
+                                <input type="range" min="10" max="300" value="${Math.min(Math.max(n.r, 10), 300)}" onmousedown="saveHistory()" ontouchstart="saveHistory()" oninput="updateR(${n.id}, this.value, this)">
+                            </div>
+                        `;
+
+                        card.addEventListener('mousedown', (e) => {
+                            if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.closest('button') || e.target.closest('input') || e.target.closest('.drag-handle')) return;
+                            activeGroupId = g.id;
+                            if (e.shiftKey || e.metaKey || e.ctrlKey) {
+                                if (selectedIds.has(n.id)) {
+                                    selectedIds.delete(n.id);
+                                } else {
+                                    selectedIds.add(n.id);
+                                }
                             } else {
-                                const prev = targetCard.previousElementSibling;
-                                (prev || targetCard).classList.add(prev ? 'drag-over' : 'drag-over-first');
+                                selectedIds.clear();
+                                selectedIds.add(n.id);
                             }
-                        }
-                        if (e.cancelable) e.preventDefault();
-                    }, { passive: false });
-
-                    dragHandle.addEventListener('touchend', () => {
-                        if (!touchCardDrag) return;
-                        clearDragIndicators();
-                        card.classList.remove('dragging');
-                        const fromIndex = touchCardDrag.fromIndex;
-                        const toIndex = touchCardDrag.targetIndex;
-                        touchCardDrag = null;
-
-                        if (fromIndex !== null && toIndex !== null && fromIndex !== toIndex && fromIndex !== toIndex - 1) {
-                            saveHistory();
-                            const [moved] = nodes.splice(fromIndex, 1);
-                            nodes.splice(fromIndex < toIndex ? toIndex - 1 : toIndex, 0, moved);
                             renderUI();
                             draw();
-                        }
+                        });
+
+                        // Drag & Drop Reordering between / within groups
+                        card.addEventListener('dragstart', (e) => {
+                            if (!e.target.closest('.drag-handle')) {
+                                e.preventDefault();
+                                return;
+                            }
+                            e.dataTransfer.effectAllowed = 'move';
+                            e.dataTransfer.setData('application/json', JSON.stringify({ nodeId: n.id, fromGroupId: g.id, fromIndex: i }));
+                            if (e.dataTransfer.setDragImage) {
+                                e.dataTransfer.setDragImage(card, 10, 10);
+                            }
+                            requestAnimationFrame(() => card.classList.add('dragging'));
+                        });
+
+                        const clearDragIndicators = () => document.querySelectorAll('.node-card').forEach(c => c.classList.remove('drag-over', 'drag-over-first'));
+
+                        card.addEventListener('dragend', () => {
+                            card.classList.remove('dragging');
+                            clearDragIndicators();
+                        });
+
+                        card.addEventListener('dragover', (e) => {
+                            e.preventDefault();
+                            e.dataTransfer.dropEffect = 'move';
+                            clearDragIndicators();
+                            const rect = card.getBoundingClientRect();
+                            const horiz = window.matchMedia('(max-width: 600px)').matches;
+                            const before = horiz ? e.clientX < rect.left + rect.width / 2 : e.clientY < rect.top + rect.height / 2;
+                            if (before) {
+                                const prev = card.previousElementSibling;
+                                (prev || card).classList.add(prev ? 'drag-over' : 'drag-over-first');
+                            } else {
+                                card.classList.add('drag-over');
+                            }
+                        });
+
+                        card.addEventListener('dragleave', () => {
+                            card.classList.remove('drag-over', 'drag-over-first');
+                        });
+
+                        card.addEventListener('drop', (e) => {
+                            e.preventDefault();
+                            clearDragIndicators();
+                            try {
+                                const raw = e.dataTransfer.getData('application/json') || e.dataTransfer.getData('text/plain');
+                                if (!raw) return;
+                                const data = JSON.parse(raw);
+                                const { nodeId, fromGroupId } = data;
+                                const fromGrp = findGroup(fromGroupId);
+                                const toGrp = g;
+                                if (!fromGrp || !toGrp) return;
+
+                                const fromNodeIdx = fromGrp.nodes.findIndex(x => x.id === nodeId);
+                                if (fromNodeIdx === -1) return;
+
+                                let toIndex = i;
+                                const rect = card.getBoundingClientRect();
+                                const horiz = window.matchMedia('(max-width: 600px)').matches;
+                                const after = horiz ? e.clientX >= rect.left + rect.width / 2 : e.clientY >= rect.top + rect.height / 2;
+                                if (after) toIndex += 1;
+
+                                if (fromGrp.id === toGrp.id && (fromNodeIdx === toIndex || fromNodeIdx === toIndex - 1)) return;
+
+                                saveHistory();
+                                const [movedNode] = fromGrp.nodes.splice(fromNodeIdx, 1);
+                                const insertIdx = (fromGrp.id === toGrp.id && fromNodeIdx < toIndex) ? toIndex - 1 : toIndex;
+                                toGrp.nodes.splice(insertIdx, 0, movedNode);
+                                activeGroupId = toGrp.id;
+                                renderUI();
+                                draw();
+                            } catch (err) {
+                                console.error(err);
+                            }
+                        });
+
+                        nodesListDiv.appendChild(card);
                     });
                 }
 
-                nodeList.appendChild(card);
+                groupCard.appendChild(nodesListDiv);
+                groupsContainer.appendChild(groupCard);
             });
         }
 
@@ -1017,16 +1923,16 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.scale(dpr, dpr);
 
-            // Full Canvas Workspace Background
+            // 1. Full Canvas Workspace Background
             ctx.fillStyle = colors.workspaceBg;
             ctx.fillRect(0, 0, cssW, cssH);
 
-            // Apply Viewport Pan & Zoom
+            // 2. Apply Viewport Pan & Zoom
             ctx.save();
             ctx.translate(panX, panY);
             ctx.scale(zoom, zoom);
 
-            // Infinite Dynamic Grid with Sub-Grid Midpoints across visible viewport
+            // Grid lines
             const gridSize = 40;
             const subGridSize = 20;
             const startX = Math.floor((-panX / zoom) / subGridSize) * subGridSize - subGridSize;
@@ -1034,7 +1940,6 @@
             const startY = Math.floor((-panY / zoom) / subGridSize) * subGridSize - subGridSize;
             const endY = Math.ceil(((cssH - panY) / zoom) / subGridSize) * subGridSize + subGridSize;
 
-            // 1. Sub-grid midpoint lines (dashed light)
             ctx.strokeStyle = colors.subGridColor;
             ctx.lineWidth = 1 / zoom;
             ctx.setLineDash([2 / zoom, 2 / zoom]);
@@ -1052,7 +1957,6 @@
             ctx.stroke();
             ctx.setLineDash([]);
 
-            // 2. Major grid lines (solid)
             ctx.strokeStyle = colors.gridColor;
             ctx.lineWidth = 1 / zoom;
             ctx.beginPath();
@@ -1068,75 +1972,110 @@
             }
             ctx.stroke();
 
-            // Geometry
-            if (nodes.length === 0) {
+            ctx.restore(); // restore viewport transform temporarily to render offscreen layer
+
+            // 3. Composite Shapes via Offscreen Canvas (Supports Boolean Holes / Subtraction)
+            const allNodes = getAllNodes();
+            if (allNodes.length === 0) {
                 ctx.save();
                 ctx.fillStyle = colors.emptyText;
-                ctx.font = `${Math.max(12, 14 / zoom)}px ui-monospace, monospace`;
+                ctx.font = `13px ui-monospace, monospace`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                const centerWorldX = (cssW / 2 - panX) / zoom;
-                const centerWorldY = (cssH / 2 - panY) / zoom;
-                ctx.fillText('Add pulleys and string them together.', centerWorldX, centerWorldY);
+                ctx.fillText('Add pulleys and string them together.', cssW / 2, cssH / 2);
                 ctx.restore();
-            } else if (nodes.length >= 2) {
-                const segments = buildStringPath();
+            } else {
+                const { offscreenCanvas: offCanvas, offscreenCtx: offCtx } = getOffscreen(canvas.width, canvas.height);
+                offCtx.clearRect(0, 0, canvas.width, canvas.height);
 
-                ctx.save();
-                ctx.fillStyle = colors.shapeFill;
-                ctx.beginPath();
+                offCtx.save();
+                offCtx.scale(dpr, dpr);
+                offCtx.translate(panX, panY);
+                offCtx.scale(zoom, zoom);
 
-                for (let i = 0; i < nodes.length; i++) {
-                    const seg = segments[i];
-                    const nextSeg = segments[(i + 1) % nodes.length];
-                    const node = nodes[(i + 1) % nodes.length];
-
-                    if (i === 0 && seg) {
-                        ctx.moveTo(seg.t1.x, seg.t1.y);
+                // Pass 1: Draw All Additive Shapes (Solid)
+                groups.filter(g => g.mode !== 'subtract').forEach(g => {
+                    if (g.nodes.length === 0) return;
+                    offCtx.fillStyle = colors.shapeFill;
+                    offCtx.beginPath();
+                    if (g.nodes.length === 1) {
+                        const n = g.nodes[0];
+                        offCtx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+                        offCtx.fill();
+                    } else {
+                        const segments = buildStringPathForNodes(g.nodes);
+                        renderPathOnContext(offCtx, g.nodes, segments);
+                        offCtx.closePath();
+                        offCtx.fill('evenodd');
                     }
+                });
 
-                    if (seg) {
-                        ctx.lineTo(seg.t2.x, seg.t2.y);
-                    }
-
-                    if (seg && nextSeg) {
-                        const arrivalAngle = Math.atan2(seg.t2.y - node.y, seg.t2.x - node.x);
-                        const departAngle = Math.atan2(nextSeg.t1.y - node.y, nextSeg.t1.x - node.x);
-
-                        const ccw = node.side === 1;
-                        ctx.arc(node.x, node.y, node.r, arrivalAngle, departAngle, ccw);
-                    }
+                // Pass 2: Punch All Subtractive Holes (Cutouts)
+                const subtractGroups = groups.filter(g => g.mode === 'subtract');
+                if (subtractGroups.length > 0) {
+                    offCtx.save();
+                    offCtx.globalCompositeOperation = 'destination-out';
+                    offCtx.fillStyle = '#000000';
+                    subtractGroups.forEach(g => {
+                        if (g.nodes.length === 0) return;
+                        offCtx.beginPath();
+                        if (g.nodes.length === 1) {
+                            const n = g.nodes[0];
+                            offCtx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+                            offCtx.fill();
+                        } else {
+                            const segments = buildStringPathForNodes(g.nodes);
+                            renderPathOnContext(offCtx, g.nodes, segments);
+                            offCtx.closePath();
+                            offCtx.fill('evenodd');
+                        }
+                    });
+                    offCtx.restore();
                 }
 
-                ctx.closePath();
-                ctx.fill();
-                ctx.restore();
-            } else if (nodes.length === 1) {
-                ctx.save();
-                ctx.fillStyle = colors.shapeFill;
-                ctx.beginPath();
-                ctx.arc(nodes[0].x, nodes[0].y, nodes[0].r, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
+                offCtx.restore();
+
+                // Draw composite offscreen result onto main canvas
+                ctx.drawImage(offCanvas, 0, 0, cssW, cssH);
             }
+
+            // 4. Re-apply Viewport Pan & Zoom for Overlays (Guides, Bounding Box, Handles, Marquee)
+            ctx.save();
+            ctx.translate(panX, panY);
+            ctx.scale(zoom, zoom);
 
             // Pulley construction guides
             ctx.save();
-            nodes.forEach(n => {
-                if (!n.color) n.color = generateLegibleColor();
-                const isSelected = selectedId === n.id;
-                ctx.strokeStyle = n.color;
-                ctx.lineWidth = (isSelected ? 2 : 1) / zoom;
-                ctx.setLineDash(isSelected ? [] : [3 / zoom, 3 / zoom]);
-                ctx.beginPath();
-                ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
-                ctx.stroke();
+            groups.forEach(g => {
+                const isSubGroup = g.mode === 'subtract';
+                g.nodes.forEach(n => {
+                    if (!n.color) n.color = generateLegibleColor();
+                    const isSelected = selectedIds.has(n.id);
 
-                ctx.fillStyle = n.color;
-                ctx.setLineDash([]);
-                ctx.beginPath();
-                ctx.arc(n.x, n.y, (isSelected ? 4 : 3) / zoom, 0, Math.PI * 2);
-                ctx.fill();
+                    ctx.strokeStyle = isSelected ? colors.guideSelected : (isSubGroup ? colors.guideHole : n.color);
+                    ctx.lineWidth = (isSelected ? 2 : 1) / zoom;
+                    ctx.setLineDash(isSelected ? [] : (isSubGroup ? [2 / zoom, 2 / zoom] : [3 / zoom, 3 / zoom]));
+
+                    ctx.beginPath();
+                    ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+                    ctx.stroke();
+
+                    // Center dot
+                    ctx.fillStyle = isSelected ? colors.guideSelected : (isSubGroup ? colors.guideHole : n.color);
+                    ctx.setLineDash([]);
+                    ctx.beginPath();
+                    ctx.arc(n.x, n.y, (isSelected ? 4.5 : 3) / zoom, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Subtractive node minus indicator badge
+                    if (isSubGroup) {
+                        ctx.fillStyle = colors.guideHole;
+                        ctx.font = `bold ${Math.max(10, 11 / zoom)}px monospace`;
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'bottom';
+                        ctx.fillText('-', n.x, n.y - n.r - (4 / zoom));
+                    }
+                });
             });
             ctx.restore();
 
@@ -1161,103 +2100,148 @@
                 ctx.restore();
             }
 
+            // Multi-selection Bounding Box & Scale Handles (When 2+ pulleys selected)
+            if (selectedIds.size >= 2) {
+                const bounds = getSelectionBounds();
+                if (bounds) {
+                    ctx.save();
+                    ctx.strokeStyle = colors.boundsBorder;
+                    ctx.lineWidth = 1 / zoom;
+                    ctx.setLineDash([4 / zoom, 3 / zoom]);
+                    ctx.strokeRect(bounds.minX, bounds.minY, bounds.width, bounds.height);
+
+                    // Corner & Edge Handles
+                    const handleSize = 7 / zoom;
+                    const halfH = handleSize / 2;
+                    ctx.setLineDash([]);
+                    ctx.fillStyle = colors.handleFill;
+                    ctx.strokeStyle = colors.handleBorder;
+                    ctx.lineWidth = 1.2 / zoom;
+
+                    const handles = [
+                        { x: bounds.minX, y: bounds.minY },
+                        { x: bounds.maxX, y: bounds.minY },
+                        { x: bounds.maxX, y: bounds.maxY },
+                        { x: bounds.minX, y: bounds.maxY },
+                        { x: bounds.cx, y: bounds.minY },
+                        { x: bounds.maxX, y: bounds.cy },
+                        { x: bounds.cx, y: bounds.maxY },
+                        { x: bounds.minX, y: bounds.cy }
+                    ];
+
+                    handles.forEach(h => {
+                        ctx.fillRect(h.x - halfH, h.y - halfH, handleSize, handleSize);
+                        ctx.strokeRect(h.x - halfH, h.y - halfH, handleSize, handleSize);
+                    });
+                    ctx.restore();
+                }
+            }
+
+            // Marquee Drag Selection Box
+            if (isMarquee) {
+                const mx = Math.min(marqueeStart.x, marqueeCurrent.x);
+                const my = Math.min(marqueeStart.y, marqueeCurrent.y);
+                const mw = Math.abs(marqueeCurrent.x - marqueeStart.x);
+                const mh = Math.abs(marqueeCurrent.y - marqueeStart.y);
+
+                ctx.save();
+                ctx.fillStyle = colors.marqueeBg;
+                ctx.strokeStyle = colors.marqueeBorder;
+                ctx.lineWidth = 1 / zoom;
+                ctx.setLineDash([3 / zoom, 3 / zoom]);
+                ctx.fillRect(mx, my, mw, mh);
+                ctx.strokeRect(mx, my, mw, mh);
+                ctx.restore();
+            }
+
             ctx.restore(); // Restore pan/zoom transform
             ctx.restore(); // Restore dpr scale
         }
 
-        // ===== SVG EXPORT =====
+        // ===== EXPORT & SAVE / IMPORT =====
+        function getExportBaseName() {
+            const val = fileNameInput ? fileNameInput.value.trim() : '';
+            const sanitized = (val || getTimestamp()).replace(/[^a-zA-Z0-9_-]/g, '_');
+            return sanitized;
+        }
+
         function buildSVG() {
-            if (nodes.length === 0) return '';
+            const allNodes = getAllNodes();
+            if (allNodes.length === 0) return '';
 
             let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-            nodes.forEach(n => {
+            allNodes.forEach(n => {
                 if (n.x - n.r < minX) minX = n.x - n.r;
                 if (n.x + n.r > maxX) maxX = n.x + n.r;
                 if (n.y - n.r < minY) minY = n.y - n.r;
                 if (n.y + n.r > maxY) maxY = n.y + n.r;
             });
 
+            const pad = 10;
+            minX -= pad; minY -= pad;
+            maxX += pad; maxY += pad;
             const w = maxX - minX;
             const h = maxY - minY;
 
             if (w <= 0 || h <= 0) return '';
 
-            let d = '';
+            let addPathsD = '';
+            let subPathsD = '';
 
-            if (nodes.length === 1) {
-                const n = nodes[0];
-                const cx = n.x, cy = n.y, r = n.r;
-                d = `M ${(cx + r).toFixed(2)} ${cy.toFixed(2)} ` +
-                    `A ${r.toFixed(2)} ${r.toFixed(2)} 0 1 1 ${(cx - r).toFixed(2)} ${cy.toFixed(2)} ` +
-                    `A ${r.toFixed(2)} ${r.toFixed(2)} 0 1 1 ${(cx + r).toFixed(2)} ${cy.toFixed(2)} Z`;
-            } else {
-                const segments = buildStringPath();
-                if (!segments) return '';
-
-                for (let i = 0; i < nodes.length; i++) {
-                    const seg = segments[i];
-                    const nextSeg = segments[(i + 1) % nodes.length];
-                    const node = nodes[(i + 1) % nodes.length];
-
-                    if (i === 0 && seg) {
-                        d += `M ${seg.t1.x.toFixed(2)} ${seg.t1.y.toFixed(2)} `;
-                    }
-
-                    if (seg) {
-                        d += `L ${seg.t2.x.toFixed(2)} ${seg.t2.y.toFixed(2)} `;
-                    }
-
-                    if (seg && nextSeg) {
-                        const arrivalAngle = Math.atan2(seg.t2.y - node.y, seg.t2.x - node.x);
-                        const departAngle = Math.atan2(nextSeg.t1.y - node.y, nextSeg.t1.x - node.x);
-
-                        const sweepCW = node.side === 1;
-                        let arcAngle = departAngle - arrivalAngle;
-
-                        if (sweepCW) {
-                            if (arcAngle > 0) arcAngle -= 2 * Math.PI;
-                        } else {
-                            if (arcAngle < 0) arcAngle += 2 * Math.PI;
-                        }
-
-                        const largeArc = Math.abs(arcAngle) > Math.PI ? 1 : 0;
-                        const sweepFlag = sweepCW ? 0 : 1;
-
-                        const endX = node.x + node.r * Math.cos(departAngle);
-                        const endY = node.y + node.r * Math.sin(departAngle);
-
-                        d += `A ${node.r.toFixed(2)} ${node.r.toFixed(2)} 0 ${largeArc} ${sweepFlag} ${endX.toFixed(2)} ${endY.toFixed(2)} `;
-                    }
+            groups.forEach(g => {
+                if (!g.nodes || g.nodes.length === 0) return;
+                const pathD = buildGroupSVGPath(g);
+                if (!pathD) return;
+                if (g.mode === 'subtract') {
+                    subPathsD += (subPathsD ? ' ' : '') + pathD;
+                } else {
+                    addPathsD += (addPathsD ? ' ' : '') + pathD;
                 }
-
-                d += 'Z';
-            }
+            });
 
             const minXStr = minX.toFixed(2);
             const minYStr = minY.toFixed(2);
             const wStr = w.toFixed(2);
             const hStr = h.toFixed(2);
 
-            return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${minXStr} ${minYStr} ${wStr} ${hStr}" width="${wStr}" height="${hStr}">
-  <path d="${d}" fill="#000000" fill-rule="evenodd" stroke="none" />
+            if (subPathsD && addPathsD) {
+                return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${minXStr} ${minYStr} ${wStr} ${hStr}" width="${wStr}" height="${hStr}">
+  <defs>
+    <mask id="pulley-holes" maskUnits="userSpaceOnUse" x="${minXStr}" y="${minYStr}" width="${wStr}" height="${hStr}">
+      <rect x="${minXStr}" y="${minYStr}" width="${wStr}" height="${hStr}" fill="white" />
+      <path d="${subPathsD}" fill="black" fill-rule="evenodd" />
+    </mask>
+  </defs>
+  <g mask="url(#pulley-holes)">
+    <path d="${addPathsD}" fill="#000000" fill-rule="evenodd" stroke="none" />
+  </g>
 </svg>`;
+            } else if (addPathsD) {
+                return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${minXStr} ${minYStr} ${wStr} ${hStr}" width="${wStr}" height="${hStr}">
+  <path d="${addPathsD}" fill="#000000" fill-rule="evenodd" stroke="none" />
+</svg>`;
+            }
+            return '';
         }
 
         function exportSVG() {
             const svg = buildSVG();
-            if (!svg) return;
+            if (!svg) {
+                alert('No shapes to export!');
+                return;
+            }
+            const baseName = getExportBaseName();
             const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'logo.svg';
+            a.download = `${baseName}.svg`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         }
 
-        // ===== SAVE & IMPORT (JSON) =====
         function getTimestamp() {
             const now = new Date();
             const pad = n => String(n).padStart(2, '0');
@@ -1279,26 +2263,35 @@
         }
 
         function savePulleySystem() {
-            if (nodes.length === 0) {
+            const allNodes = getAllNodes();
+            if (allNodes.length === 0) {
                 alert('No pulleys to save!');
                 return;
             }
             const data = {
-                version: 1,
+                version: 2,
                 generator: "String & Pulley Logo Tool",
                 timestamp: new Date().toISOString(),
-                nodes: nodes.map(n => ({
-                    id: n.id,
-                    x: n.x,
-                    y: n.y,
-                    r: n.r,
-                    side: n.side,
-                    color: n.color
+                groups: groups.map(g => ({
+                    id: g.id,
+                    name: g.name,
+                    mode: g.mode,
+                    collapsed: g.collapsed,
+                    nodes: g.nodes.map(n => ({
+                        id: n.id,
+                        x: n.x,
+                        y: n.y,
+                        r: n.r,
+                        side: n.side,
+                        color: n.color
+                    }))
                 }))
             };
             const jsonContent = JSON.stringify(data, null, 2);
+            const userVal = fileNameInput ? fileNameInput.value.trim() : '';
             const timestamp = getTimestamp();
-            downloadFile(jsonContent, `pulley-system_${timestamp}.json`, 'application/json;charset=utf-8');
+            const fileNameToUse = userVal ? `${userVal.replace(/[^a-zA-Z0-9_-]/g, '_')}_${timestamp}.json` : `${timestamp}.json`;
+            downloadFile(jsonContent, fileNameToUse, 'application/json;charset=utf-8');
         }
 
         function importPulleySystem(file) {
@@ -1308,33 +2301,82 @@
                 try {
                     const content = e.target.result;
                     const parsed = JSON.parse(content);
-                    let rawNodes = [];
-                    if (Array.isArray(parsed)) {
-                        rawNodes = parsed;
-                    } else if (parsed && Array.isArray(parsed.nodes)) {
-                        rawNodes = parsed.nodes;
+                    let importedGroups = [];
+
+                    if (parsed && Array.isArray(parsed.groups)) {
+                        // Version 2 format with groups
+                        importedGroups = parsed.groups.map((g, gIdx) => ({
+                            id: typeof g.id === 'number' ? g.id : gIdx + 1,
+                            name: typeof g.name === 'string' && g.name ? g.name : `Group ${gIdx + 1}`,
+                            mode: g.mode === 'subtract' ? 'subtract' : 'add',
+                            collapsed: !!g.collapsed,
+                            nodes: Array.isArray(g.nodes) ? g.nodes.map((n, nIdx) => ({
+                                id: typeof n.id === 'number' ? n.id : nIdx + 1,
+                                x: typeof n.x === 'number' ? n.x : 400,
+                                y: typeof n.y === 'number' ? n.y : 400,
+                                r: typeof n.r === 'number' ? Math.max(2, n.r) : 60,
+                                side: n.side === -1 ? -1 : 1,
+                                color: typeof n.color === 'string' && n.color ? n.color : generateLegibleColor()
+                            })) : []
+                        }));
                     } else {
-                        throw new Error('Expected array of nodes or object with "nodes" property.');
+                        // Legacy Version 1 format (flat nodes array)
+                        let rawNodes = [];
+                        if (Array.isArray(parsed)) {
+                            rawNodes = parsed;
+                        } else if (parsed && Array.isArray(parsed.nodes)) {
+                            rawNodes = parsed.nodes;
+                        } else {
+                            throw new Error('Unrecognized JSON format.');
+                        }
+
+                        const migratedNodes = rawNodes.map((n, idx) => ({
+                            id: typeof n.id === 'number' ? n.id : idx + 1,
+                            x: typeof n.x === 'number' ? n.x : 400,
+                            y: typeof n.y === 'number' ? n.y : 400,
+                            r: typeof n.r === 'number' ? Math.max(2, n.r) : 60,
+                            side: n.side === -1 ? -1 : 1,
+                            color: typeof n.color === 'string' && n.color ? n.color : generateLegibleColor()
+                        }));
+
+                        importedGroups = [{
+                            id: 1,
+                            name: 'Group 1',
+                            mode: 'add',
+                            collapsed: false,
+                            nodes: migratedNodes
+                        }];
                     }
 
-                    const importedNodes = rawNodes.map((n, idx) => ({
-                        id: typeof n.id === 'number' ? n.id : idx + 1,
-                        x: typeof n.x === 'number' ? n.x : 400,
-                        y: typeof n.y === 'number' ? n.y : 400,
-                        r: typeof n.r === 'number' ? Math.max(5, n.r) : 60,
-                        side: n.side === -1 ? -1 : 1,
-                        color: typeof n.color === 'string' && n.color ? n.color : generateLegibleColor()
-                    }));
-
-                    if (importedNodes.length === 0) {
-                        alert('No valid pulley nodes found in the JSON file.');
+                    if (importedGroups.length === 0) {
+                        alert('No valid pulley groups found in the JSON file.');
                         return;
                     }
 
                     saveHistory();
-                    nodes = importedNodes;
-                    nextId = nodes.reduce((max, n) => Math.max(max, n.id || 0), 0) + 1;
-                    selectedId = nodes.length > 0 ? nodes[0].id : null;
+                    groups = importedGroups;
+
+                    // Update ID counters
+                    let maxNodeId = 0;
+                    let maxGroupId = 0;
+                    groups.forEach(g => {
+                        maxGroupId = Math.max(maxGroupId, g.id || 0);
+                        g.nodes.forEach(n => {
+                            maxNodeId = Math.max(maxNodeId, n.id || 0);
+                        });
+                    });
+                    nextNodeId = maxNodeId + 1;
+                    nextGroupId = maxGroupId + 1;
+                    activeGroupId = groups[0].id;
+                    selectedIds.clear();
+
+                    // Update filename input from imported file name
+                    if (file.name) {
+                        const nameWithoutExt = file.name.replace(/\.[^/.]+$/, '').replace(/_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}$/, '');
+                        if (nameWithoutExt && fileNameInput) {
+                            fileNameInput.value = nameWithoutExt;
+                        }
+                    }
 
                     renderUI();
                     fitView();
@@ -1347,90 +2389,52 @@
             reader.readAsText(file);
         }
 
-        // ===== INTERACTION =====
-        canvasWrap.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            const r = canvasWrap.getBoundingClientRect();
-            const cursorX = e.clientX - r.left;
-            const cursorY = e.clientY - r.top;
-            const zoomFactor = e.deltaY < 0 ? 1.15 : 0.87;
-            setZoom(zoom * zoomFactor, cursorX, cursorY);
-        }, { passive: false });
+        // ===== HIT TESTING =====
+        function getScaleHandleHit(p) {
+            if (selectedIds.size < 2) return null;
+            const bounds = getSelectionBounds();
+            if (!bounds) return null;
 
-        window.addEventListener('keydown', (e) => {
-            const isCmdOrCtrl = e.metaKey || e.ctrlKey;
-            const key = e.key ? e.key.toLowerCase() : '';
+            const handleHitRadius = 9 / zoom;
+            const handles = [
+                { id: 'tl', x: bounds.minX, y: bounds.minY, ax: bounds.maxX, ay: bounds.maxY },
+                { id: 'tr', x: bounds.maxX, y: bounds.minY, ax: bounds.minX, ay: bounds.maxY },
+                { id: 'br', x: bounds.maxX, y: bounds.maxY, ax: bounds.minX, ay: bounds.minY },
+                { id: 'bl', x: bounds.minX, y: bounds.maxY, ax: bounds.maxX, ay: bounds.minY },
+                { id: 'tm', x: bounds.cx, y: bounds.minY, ax: bounds.cx, ay: bounds.maxY },
+                { id: 'bm', x: bounds.cx, y: bounds.maxY, ax: bounds.cx, ay: bounds.minY },
+                { id: 'lm', x: bounds.minX, y: bounds.cy, ax: bounds.maxX, ay: bounds.cy },
+                { id: 'rm', x: bounds.maxX, y: bounds.cy, ax: bounds.minX, ay: bounds.cy }
+            ];
 
-            // Undo: Cmd+Z or Ctrl+Z (without Shift)
-            if (isCmdOrCtrl && key === 'z' && !e.shiftKey) {
-                if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
-                    return;
-                }
-                e.preventDefault();
-                undo();
-                return;
-            }
-
-            // Redo: Cmd+Y or Cmd+Shift+Z or Ctrl+Y or Ctrl+Shift+Z
-            if (isCmdOrCtrl && (key === 'y' || (key === 'z' && e.shiftKey))) {
-                if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
-                    return;
-                }
-                e.preventDefault();
-                redo();
-                return;
-            }
-
-            if (e.code === 'Space' && !e.repeat && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'SELECT') {
-                isSpacePressed = true;
-                canvasWrap.style.cursor = 'grab';
-            }
-        });
-
-        window.addEventListener('keyup', (e) => {
-            if (e.code === 'Space') {
-                isSpacePressed = false;
-                canvasWrap.style.cursor = 'default';
-            }
-        });
-
-        canvasWrap.addEventListener('mousedown', (e) => {
-            const p = mousePos(e);
-            let hit = null;
-
-            if (e.button === 0 && !isSpacePressed) {
-                for (let i = nodes.length - 1; i >= 0; i--) {
-                    if (dist(p, nodes[i]) <= nodes[i].r + (8 / zoom)) {
-                        hit = nodes[i];
-                        break;
-                    }
+            for (const h of handles) {
+                if (Math.hypot(p.x - h.x, p.y - h.y) <= handleHitRadius) {
+                    return h;
                 }
             }
+            return null;
+        }
 
-            if (hit) {
-                selectedId = hit.id;
-                isDragging = true;
-                dragInitialState = getSnapshot();
-                dragOff.x = p.x - hit.x;
-                dragOff.y = p.y - hit.y;
-                canvasWrap.style.cursor = 'grabbing';
-            } else {
-                if (e.button === 0 && !isSpacePressed) {
-                    selectedId = null;
+        function getNodeHit(p) {
+            const allNodes = getAllNodes();
+            for (let i = allNodes.length - 1; i >= 0; i--) {
+                const n = allNodes[i];
+                if (dist(p, n) <= n.r + (8 / zoom)) {
+                    return n;
                 }
-                isPanning = true;
-                panStart = { x: e.clientX, y: e.clientY };
-                canvasWrap.style.cursor = 'grabbing';
             }
+            return null;
+        }
 
-            renderUI();
-            draw();
-        });
-
+        // ===== INTERACTION HANDLERS =====
         function handleNodeDrag(p) {
-            if (!isDragging || selectedId === null) return;
-            const n = nodes.find(x => x.id === selectedId);
-            if (!n) return;
+            if (!isDragging || !draggedNodeId) return;
+            const dragged = findNode(draggedNodeId);
+            if (!dragged) return;
+
+            const activeNode = dragged.node;
+            const initPos = dragInitialPositions.get(activeNode.id);
+            if (!initPos) return;
 
             const rawX = p.x - dragOff.x;
             const rawY = p.y - dragOff.y;
@@ -1482,23 +2486,24 @@
             trySnapX(rawX, nearestGridX, nearestGridX, gridColorX);
             trySnapY(rawY, nearestGridY, nearestGridY, gridColorY);
 
-            // 2. Node-to-Node Center & Edge Snapping
+            // 2. Node-to-Node Snapping against unselected nodes
+            const allNodes = getAllNodes();
             const centerColor = '#008800';
             const edgeColor = '#0088cc';
 
-            nodes.forEach(o => {
-                if (o.id === n.id) return;
+            allNodes.forEach(o => {
+                if (selectedIds.has(o.id)) return;
                 trySnapX(rawX, o.x, o.x, centerColor);
-                trySnapX(rawX - n.r, o.x - o.r, o.x - o.r, edgeColor);
-                trySnapX(rawX + n.r, o.x + o.r, o.x + o.r, edgeColor);
-                trySnapX(rawX - n.r, o.x + o.r, o.x + o.r, edgeColor);
-                trySnapX(rawX + n.r, o.x - o.r, o.x - o.r, edgeColor);
+                trySnapX(rawX - activeNode.r, o.x - o.r, o.x - o.r, edgeColor);
+                trySnapX(rawX + activeNode.r, o.x + o.r, o.x + o.r, edgeColor);
+                trySnapX(rawX - activeNode.r, o.x + o.r, o.x + o.r, edgeColor);
+                trySnapX(rawX + activeNode.r, o.x - o.r, o.x - o.r, edgeColor);
 
                 trySnapY(rawY, o.y, o.y, centerColor);
-                trySnapY(rawY - n.r, o.y - o.r, o.y - o.r, edgeColor);
-                trySnapY(rawY + n.r, o.y + o.r, o.y + o.r, edgeColor);
-                trySnapY(rawY - n.r, o.y + o.r, o.y + o.r, edgeColor);
-                trySnapY(rawY + n.r, o.y - o.r, o.y - o.r, edgeColor);
+                trySnapY(rawY - activeNode.r, o.y - o.r, o.y - o.r, edgeColor);
+                trySnapY(rawY + activeNode.r, o.y + o.r, o.y + o.r, edgeColor);
+                trySnapY(rawY - activeNode.r, o.y + o.r, o.y + o.r, edgeColor);
+                trySnapY(rawY + activeNode.r, o.y - o.r, o.y - o.r, edgeColor);
             });
 
             if (bestSnapX) {
@@ -1510,11 +2515,143 @@
                 guides.push(...bestSnapY.guides);
             }
 
-            n.x = Math.round(sx);
-            n.y = Math.round(sy);
+            const snappedX = Math.round(sx);
+            const snappedY = Math.round(sy);
+            const dx = snappedX - initPos.x;
+            const dy = snappedY - initPos.y;
+
+            // Move all selected nodes synchronously
+            selectedIds.forEach(id => {
+                const res = findNode(id);
+                const init = dragInitialPositions.get(id);
+                if (res && init) {
+                    res.node.x = init.x + dx;
+                    res.node.y = init.y + dy;
+                }
+            });
+
             draw();
         }
 
+        function handleScaleDrag(p) {
+            if (!isScaling || !activeScaleHandle || !initialScaleBounds) return;
+            const bounds = initialScaleBounds;
+            const anchor = initialScaleAnchor;
+
+            const initDistX = Math.abs(activeScaleHandle.x - anchor.x);
+            const initDistY = Math.abs(activeScaleHandle.y - anchor.y);
+            const currDistX = Math.abs(p.x - anchor.x);
+            const currDistY = Math.abs(p.y - anchor.y);
+
+            let scale = 1.0;
+            if (initDistX > 1e-4 && initDistY > 1e-4) {
+                scale = ((currDistX / initDistX) + (currDistY / initDistY)) / 2;
+            } else if (initDistX > 1e-4) {
+                scale = currDistX / initDistX;
+            } else if (initDistY > 1e-4) {
+                scale = currDistY / initDistY;
+            }
+
+            scale = Math.min(Math.max(scale, 0.05), 20.0);
+
+            selectedIds.forEach(id => {
+                const res = findNode(id);
+                const init = dragInitialPositions.get(id);
+                if (res && init) {
+                    res.node.x = Math.round(anchor.x + (init.x - anchor.x) * scale);
+                    res.node.y = Math.round(anchor.y + (init.y - anchor.y) * scale);
+                    res.node.r = Math.max(2, Math.round(init.r * scale));
+                }
+            });
+
+            draw();
+        }
+
+        // Canvas Wheel Zoom
+        canvasWrap.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const r = canvasWrap.getBoundingClientRect();
+            const cursorX = e.clientX - r.left;
+            const cursorY = e.clientY - r.top;
+            const zoomFactor = e.deltaY < 0 ? 1.15 : 0.87;
+            setZoom(zoom * zoomFactor, cursorX, cursorY);
+        }, { passive: false });
+
+        // Canvas MouseDown
+        canvasWrap.addEventListener('mousedown', (e) => {
+            const p = mousePos(e);
+
+            if (e.button === 0 && !isSpacePressed) {
+                // 1. Check scale handle hit if 2+ selected
+                const handleHit = getScaleHandleHit(p);
+                if (handleHit) {
+                    isScaling = true;
+                    activeScaleHandle = handleHit;
+                    initialScaleBounds = getSelectionBounds();
+                    initialScaleAnchor = { x: handleHit.ax, y: handleHit.ay };
+                    dragInitialState = getSnapshot();
+                    dragInitialPositions.clear();
+                    selectedIds.forEach(id => {
+                        const res = findNode(id);
+                        if (res) dragInitialPositions.set(id, { x: res.node.x, y: res.node.y, r: res.node.r });
+                    });
+                    canvasWrap.style.cursor = 'crosshair';
+                    return;
+                }
+
+                // 2. Check node hit
+                const hit = getNodeHit(p);
+                if (hit) {
+                    const res = findNode(hit.id);
+                    if (res) activeGroupId = res.group.id;
+
+                    if (e.shiftKey || e.metaKey || e.ctrlKey) {
+                        if (selectedIds.has(hit.id)) {
+                            selectedIds.delete(hit.id);
+                        } else {
+                            selectedIds.add(hit.id);
+                        }
+                    } else if (!selectedIds.has(hit.id)) {
+                        selectedIds.clear();
+                        selectedIds.add(hit.id);
+                    }
+
+                    isDragging = true;
+                    draggedNodeId = hit.id;
+                    dragInitialState = getSnapshot();
+                    dragOff.x = p.x - hit.x;
+                    dragOff.y = p.y - hit.y;
+                    dragInitialPositions.clear();
+                    selectedIds.forEach(id => {
+                        const nRes = findNode(id);
+                        if (nRes) dragInitialPositions.set(id, { x: nRes.node.x, y: nRes.node.y, r: nRes.node.r });
+                    });
+
+                    canvasWrap.style.cursor = 'grabbing';
+                    renderUI();
+                    draw();
+                    return;
+                }
+
+                // 3. Clicked empty space -> start Marquee box selection
+                if (!e.shiftKey && !e.metaKey && !e.ctrlKey) {
+                    selectedIds.clear();
+                }
+                isMarquee = true;
+                marqueeStart = { x: p.x, y: p.y };
+                marqueeCurrent = { x: p.x, y: p.y };
+                renderUI();
+                draw();
+                return;
+            }
+
+            // Panning (Space held or middle click)
+            isPanning = true;
+            panStart = { x: e.clientX, y: e.clientY };
+            canvasWrap.style.cursor = 'grabbing';
+        });
+
+        // Window MouseMove
         window.addEventListener('mousemove', (e) => {
             if (isPanning) {
                 const dx = e.clientX - panStart.x;
@@ -1527,27 +2664,51 @@
             }
 
             const p = mousePos(e);
-            let hover = false;
 
-            if (!isSpacePressed) {
-                for (let i = nodes.length - 1; i >= 0; i--) {
-                    if (dist(p, nodes[i]) <= nodes[i].r + (8 / zoom)) {
-                        hover = true;
-                        break;
-                    }
-                }
+            if (isScaling) {
+                handleScaleDrag(p);
+                return;
             }
 
-            if (isDragging && selectedId !== null) {
-                canvasWrap.style.cursor = 'grabbing';
+            if (isDragging) {
                 handleNodeDrag(p);
+                return;
+            }
+
+            if (isMarquee) {
+                marqueeCurrent = { x: p.x, y: p.y };
+                const minX = Math.min(marqueeStart.x, marqueeCurrent.x);
+                const maxX = Math.max(marqueeStart.x, marqueeCurrent.x);
+                const minY = Math.min(marqueeStart.y, marqueeCurrent.y);
+                const maxY = Math.max(marqueeStart.y, marqueeCurrent.y);
+
+                const allNodes = getAllNodes();
+                allNodes.forEach(n => {
+                    const inBox = (n.x >= minX - n.r && n.x <= maxX + n.r && n.y >= minY - n.r && n.y <= maxY + n.r);
+                    if (inBox) {
+                        selectedIds.add(n.id);
+                    }
+                });
+                renderUI();
+                draw();
+                return;
+            }
+
+            // Hover cursor checks
+            if (isSpacePressed) {
+                canvasWrap.style.cursor = 'grab';
+            } else if (getScaleHandleHit(p)) {
+                canvasWrap.style.cursor = 'crosshair';
+            } else if (getNodeHit(p)) {
+                canvasWrap.style.cursor = 'pointer';
             } else {
-                canvasWrap.style.cursor = isSpacePressed ? 'grab' : hover ? 'pointer' : 'default';
+                canvasWrap.style.cursor = 'default';
             }
         });
 
+        // Window MouseUp
         window.addEventListener('mouseup', () => {
-            if (isDragging && dragInitialState) {
+            if ((isDragging || isScaling) && dragInitialState) {
                 const currentState = getSnapshot();
                 if (dragInitialState !== currentState) {
                     undoStack.push(dragInitialState);
@@ -1557,19 +2718,24 @@
                 }
                 dragInitialState = null;
             }
+
             isDragging = false;
+            isScaling = false;
             isPanning = false;
+            isMarquee = false;
+            activeScaleHandle = null;
+            initialScaleBounds = null;
+            draggedNodeId = null;
             guides = [];
             canvasWrap.style.cursor = isSpacePressed ? 'grab' : 'default';
+            renderUI();
             draw();
         });
 
-        // ===== TOUCH & PINCH-TO-ZOOM EVENTS =====
-        let touchCardDrag = null;
+        // ===== TOUCH SUPPORT =====
         let isPinching = false;
         let initialPinchDist = 0;
         let initialPinchZoom = 1;
-        let pinchCenterCanvas = { x: 0, y: 0 };
         let lastPinchCenterClient = { x: 0, y: 0 };
 
         function getTouchPos(touch) {
@@ -1587,25 +2753,26 @@
                 isPinching = false;
                 const touch = e.touches[0];
                 const p = getTouchPos(touch);
-                let hit = null;
-
-                const hitMargin = 16 / zoom;
-                for (let i = nodes.length - 1; i >= 0; i--) {
-                    if (dist(p, nodes[i]) <= nodes[i].r + hitMargin) {
-                        hit = nodes[i];
-                        break;
-                    }
-                }
+                const hit = getNodeHit(p);
 
                 if (hit) {
-                    selectedId = hit.id;
+                    const res = findNode(hit.id);
+                    if (res) activeGroupId = res.group.id;
+                    if (!selectedIds.has(hit.id)) {
+                        selectedIds.clear();
+                        selectedIds.add(hit.id);
+                    }
                     isDragging = true;
-                    isPanning = false;
+                    draggedNodeId = hit.id;
                     dragOff.x = p.x - hit.x;
                     dragOff.y = p.y - hit.y;
+                    dragInitialPositions.clear();
+                    selectedIds.forEach(id => {
+                        const nRes = findNode(id);
+                        if (nRes) dragInitialPositions.set(id, { x: nRes.node.x, y: nRes.node.y, r: nRes.node.r });
+                    });
                 } else {
-                    selectedId = null;
-                    isDragging = false;
+                    selectedIds.clear();
                     isPanning = true;
                     panStart = { x: touch.clientX, y: touch.clientY };
                 }
@@ -1620,20 +2787,13 @@
 
                 const t1 = e.touches[0];
                 const t2 = e.touches[1];
-
                 initialPinchDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
                 initialPinchZoom = zoom;
 
-                const wrapRect = canvasWrap.getBoundingClientRect();
                 lastPinchCenterClient = {
                     x: (t1.clientX + t2.clientX) / 2,
                     y: (t1.clientY + t2.clientY) / 2
                 };
-                pinchCenterCanvas = {
-                    x: lastPinchCenterClient.x - wrapRect.left,
-                    y: lastPinchCenterClient.y - wrapRect.top
-                };
-
                 if (e.cancelable) e.preventDefault();
             }
         }, { passive: false });
@@ -1649,7 +2809,7 @@
                     panStart = { x: touch.clientX, y: touch.clientY };
                     draw();
                     if (e.cancelable) e.preventDefault();
-                } else if (isDragging && selectedId !== null) {
+                } else if (isDragging) {
                     const p = getTouchPos(touch);
                     handleNodeDrag(p);
                     if (e.cancelable) e.preventDefault();
@@ -1686,118 +2846,215 @@
             }
         }, { passive: false });
 
-        const endTouch = (e) => {
-            if (!e.touches || e.touches.length === 0) {
-                isDragging = false;
-                isPanning = false;
-                isPinching = false;
-                initialPinchDist = 0;
-                guides = [];
-                draw();
-            } else if (e.touches.length === 1 && isPinching) {
-                isPinching = false;
-                isDragging = false;
-                isPanning = true;
-                const touch = e.touches[0];
-                panStart = { x: touch.clientX, y: touch.clientY };
-            }
+        const endTouch = () => {
+            isDragging = false;
+            isPanning = false;
+            isPinching = false;
+            initialPinchDist = 0;
+            guides = [];
+            draw();
         };
 
         window.addEventListener('touchend', endTouch);
         window.addEventListener('touchcancel', endTouch);
 
-        // ===== CONTROL BUTTON LISTENERS =====
+        // ===== KEYBOARD SHORTCUTS =====
+        window.addEventListener('keydown', (e) => {
+            const isCmdOrCtrl = e.metaKey || e.ctrlKey;
+            const key = e.key ? e.key.toLowerCase() : '';
+            const inInput = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA');
+
+            // Hotkeys Modal: ? or H (when not in input)
+            if ((key === '?' || (key === 'h' && !isCmdOrCtrl)) && !inInput) {
+                e.preventDefault();
+                if (hotkeysModal && hotkeysModal.classList.contains('open')) {
+                    closeHotkeysModal();
+                } else {
+                    openHotkeysModal();
+                }
+                return;
+            }
+
+            if (key === 'escape') {
+                if (tutorialModal && tutorialModal.classList.contains('open')) {
+                    closeTutorialModal();
+                    return;
+                }
+                if (hotkeysModal && hotkeysModal.classList.contains('open')) {
+                    closeHotkeysModal();
+                    return;
+                }
+                selectedIds.clear();
+                renderUI();
+                draw();
+                return;
+            }
+
+            // Undo: Cmd+Z (without Shift)
+            if (isCmdOrCtrl && key === 'z' && !e.shiftKey) {
+                if (inInput) return;
+                e.preventDefault();
+                undo();
+                return;
+            }
+
+            // Redo: Cmd+Y or Cmd+Shift+Z
+            if (isCmdOrCtrl && (key === 'y' || (key === 'z' && e.shiftKey))) {
+                if (inInput) return;
+                e.preventDefault();
+                redo();
+                return;
+            }
+
+            // Save JSON: Cmd+S
+            if (isCmdOrCtrl && key === 's') {
+                e.preventDefault();
+                savePulleySystem();
+                return;
+            }
+
+            // Export SVG: Cmd+E
+            if (isCmdOrCtrl && key === 'e') {
+                e.preventDefault();
+                exportSVG();
+                return;
+            }
+
+            // Select All: Cmd+A / Ctrl+A
+            if (isCmdOrCtrl && key === 'a' && !inInput) {
+                e.preventDefault();
+                getAllNodes().forEach(n => selectedIds.add(n.id));
+                renderUI();
+                draw();
+                return;
+            }
+
+            if (inInput) return;
+
+            // Add Pulley: A or P or N
+            if (key === 'a' || key === 'p' || key === 'n') {
+                e.preventDefault();
+                addPulleyToGroup(activeGroupId);
+                return;
+            }
+
+            // Add Group: G
+            if (key === 'g') {
+                e.preventDefault();
+                if (selectedIds.size > 1) {
+                    groupSelectedNodes();
+                } else {
+                    addNewGroup();
+                }
+                return;
+            }
+
+            // Delete Selection: Delete / Backspace
+            if (key === 'backspace' || key === 'delete') {
+                e.preventDefault();
+                deleteSelectedNodes();
+                return;
+            }
+
+            // Adjust Radius: [ and ]
+            if (key === '[') {
+                e.preventDefault();
+                adjustSelectionRadius(-5);
+                return;
+            }
+            if (key === ']') {
+                e.preventDefault();
+                adjustSelectionRadius(5);
+                return;
+            }
+
+            // Nudge Selection: Arrow Keys
+            if (key === 'arrowleft') {
+                e.preventDefault();
+                nudgeSelection(e.shiftKey ? -10 : -1, 0);
+                return;
+            }
+            if (key === 'arrowright') {
+                e.preventDefault();
+                nudgeSelection(e.shiftKey ? 10 : 1, 0);
+                return;
+            }
+            if (key === 'arrowup') {
+                e.preventDefault();
+                nudgeSelection(0, e.shiftKey ? -10 : -1);
+                return;
+            }
+            if (key === 'arrowdown') {
+                e.preventDefault();
+                nudgeSelection(0, e.shiftKey ? 10 : 1);
+                return;
+            }
+
+            // Viewport navigation
+            if (key === 'f') {
+                e.preventDefault();
+                fitView();
+                return;
+            }
+            if (key === '0') {
+                e.preventDefault();
+                setZoom(1.0);
+                return;
+            }
+            if (key === '+' || key === '=') {
+                e.preventDefault();
+                setZoom(zoom * 1.25);
+                return;
+            }
+            if (key === '-' || key === '_') {
+                e.preventDefault();
+                setZoom(zoom * 0.8);
+                return;
+            }
+
+            // Pan canvas modifier (Spacebar)
+            if (e.code === 'Space' && !e.repeat) {
+                isSpacePressed = true;
+                canvasWrap.style.cursor = 'grab';
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.code === 'Space') {
+                isSpacePressed = false;
+                canvasWrap.style.cursor = 'default';
+            }
+        });
+
+        // ===== CONTROL BUTTON EVENT LISTENERS =====
         document.getElementById('undoBtn').addEventListener('click', undo);
         document.getElementById('redoBtn').addEventListener('click', redo);
 
-        document.getElementById('addBtn').addEventListener('click', () => {
-            saveHistory();
-            const id = nextId++;
-            const wrapRect = canvasWrap.getBoundingClientRect();
-            const centerWorld = mousePos({
-                clientX: wrapRect.left + wrapRect.width / 2,
-                clientY: wrapRect.top + wrapRect.height / 2
-            });
+        document.getElementById('addPulleyBtn').addEventListener('click', () => addPulleyToGroup(activeGroupId));
+        document.getElementById('addGroupBtn').addEventListener('click', addNewGroup);
 
-            const newNode = { id, x: 0, y: 0, r: 60, side: 1, color: generateLegibleColor() };
+        document.getElementById('tutorialBtn').addEventListener('click', openTutorialModal);
+        document.getElementById('hotkeysBtn').addEventListener('click', openHotkeysModal);
+        document.getElementById('guideBtn').addEventListener('click', openTutorialModal);
 
-            if (nodes.length === 0) {
-                newNode.x = Math.round(centerWorld.x);
-                newNode.y = Math.round(centerWorld.y);
-                nodes.push(newNode);
-            } else {
-                const targetNode = nodes.find(n => n.id === selectedId) || nodes[nodes.length - 1];
-                const targetIdx = nodes.indexOf(targetNode);
-                const otherNodes = nodes.filter(n => n.id !== targetNode.id);
+        document.getElementById('closeTutorialModalBtn').addEventListener('click', closeTutorialModal);
+        tutorialModal.addEventListener('click', (e) => {
+            if (e.target === tutorialModal) closeTutorialModal();
+        });
 
-                let spawnX, spawnY;
+        document.getElementById('closeHotkeysModalBtn').addEventListener('click', closeHotkeysModal);
+        hotkeysModal.addEventListener('click', (e) => {
+            if (e.target === hotkeysModal) closeHotkeysModal();
+        });
 
-                if (otherNodes.length === 0) {
-                    spawnX = Math.round(targetNode.x + targetNode.r + 60 + 20);
-                    spawnY = Math.round(targetNode.y);
-                } else {
-                    let nearestNode = otherNodes[0];
-                    let minSq = Infinity;
-                    for (const o of otherNodes) {
-                        const sq = (o.x - targetNode.x) ** 2 + (o.y - targetNode.y) ** 2;
-                        if (sq < minSq) { minSq = sq; nearestNode = o; }
-                    }
-
-                    function isPositionValid(px, py) {
-                        for (const o of nodes) {
-                            const minDist = o.r + 60 + 5;
-                            if (Math.hypot(px - o.x, py - o.y) < minDist) return false;
-                        }
-                        return true;
-                    }
-
-                    // 1. Try midpoint
-                    const midX = Math.round((targetNode.x + nearestNode.x) / 2);
-                    const midY = Math.round((targetNode.y + nearestNode.y) / 2);
-
-                    if (isPositionValid(midX, midY)) {
-                        spawnX = midX;
-                        spawnY = midY;
-                    } else {
-                        // 2. Search directions around targetNode for non-colliding position
-                        const baseAngle = Math.atan2(nearestNode.y - targetNode.y, nearestNode.x - targetNode.x);
-                        const radiusDist = targetNode.r + 60 + 15;
-                        let foundPos = null;
-
-                        const anglesToTry = [];
-                        for (let i = 0; i < 16; i++) {
-                            const step = Math.floor((i + 1) / 2) * (i % 2 === 0 ? 1 : -1);
-                            anglesToTry.push(baseAngle + (step * Math.PI / 8));
-                        }
-
-                        for (const ang of anglesToTry) {
-                            const testX = Math.round(targetNode.x + radiusDist * Math.cos(ang));
-                            const testY = Math.round(targetNode.y + radiusDist * Math.sin(ang));
-                            if (isPositionValid(testX, testY)) {
-                                foundPos = { x: testX, y: testY };
-                                break;
-                            }
-                        }
-
-                        if (foundPos) {
-                            spawnX = foundPos.x;
-                            spawnY = foundPos.y;
-                        } else {
-                            spawnX = Math.round(targetNode.x + targetNode.r + 60 + 20);
-                            spawnY = Math.round(targetNode.y);
-                        }
-                    }
-                }
-
-                newNode.x = spawnX;
-                newNode.y = spawnY;
-                newNode.r = 60;
-                newNode.side = 1;
-
-                nodes.splice(targetIdx + 1, 0, newNode);
-            }
-
-            selectedId = id;
+        document.getElementById('scaleUpBtn').addEventListener('click', () => scaleSelection(1.1));
+        document.getElementById('scaleDownBtn').addEventListener('click', () => scaleSelection(0.9));
+        document.getElementById('radUpBtn').addEventListener('click', () => adjustSelectionRadius(5));
+        document.getElementById('radDownBtn').addEventListener('click', () => adjustSelectionRadius(-5));
+        document.getElementById('groupSelectedBtn').addEventListener('click', groupSelectedNodes);
+        document.getElementById('delSelectedBtn').addEventListener('click', deleteSelectedNodes);
+        document.getElementById('deselectAllBtn').addEventListener('click', () => {
+            selectedIds.clear();
             renderUI();
             draw();
         });
