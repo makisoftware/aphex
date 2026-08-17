@@ -1728,17 +1728,73 @@
 
                 const groupHeader = document.createElement('div');
                 groupHeader.className = 'group-header';
-                groupHeader.innerHTML = `
-                    <div class="group-title-wrap">
-                        <button type="button" class="group-collapse-btn" onclick="toggleGroupCollapse(${g.id})" title="${isCollapsed ? 'Expand' : 'Collapse'}">${isCollapsed ? '▸' : '▾'}</button>
-                        <input type="text" class="group-name-input" value="${g.name}" onchange="setGroupName(${g.id}, this.value)" title="Click to rename group">
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 3px;">
-                        <button type="button" class="group-mode-btn ${modeClass}" onclick="toggleGroupMode(${g.id})" title="Toggle Shape (Additive) / Hole (Subtractive)">${modeLabel}</button>
-                        <button type="button" class="btn-del" onclick="addPulleyToGroup(${g.id})" title="Add Pulley to this Group">+</button>
-                        <button type="button" class="btn-del" onclick="deleteGroup(${g.id})" title="Delete Group">[X]</button>
-                    </div>
-                `;
+
+                const titleWrap = document.createElement('div');
+                titleWrap.className = 'group-title-wrap';
+
+                const collapseBtn = document.createElement('button');
+                collapseBtn.type = 'button';
+                collapseBtn.className = 'group-collapse-btn';
+                collapseBtn.title = isCollapsed ? 'Expand' : 'Collapse';
+                collapseBtn.innerText = isCollapsed ? '▸' : '▾';
+                collapseBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleGroupCollapse(g.id);
+                });
+
+                const nameInput = document.createElement('input');
+                nameInput.type = 'text';
+                nameInput.className = 'group-name-input';
+                nameInput.value = g.name;
+                nameInput.title = 'Click to rename group';
+                nameInput.addEventListener('click', (e) => e.stopPropagation());
+                nameInput.addEventListener('change', (e) => {
+                    e.stopPropagation();
+                    setGroupName(g.id, e.target.value);
+                });
+
+                titleWrap.appendChild(collapseBtn);
+                titleWrap.appendChild(nameInput);
+
+                const actionsWrap = document.createElement('div');
+                actionsWrap.style.cssText = 'display: flex; align-items: center; gap: 3px;';
+
+                const modeBtn = document.createElement('button');
+                modeBtn.type = 'button';
+                modeBtn.className = `group-mode-btn ${modeClass}`;
+                modeBtn.title = 'Toggle Shape (Additive) / Hole (Subtractive)';
+                modeBtn.innerText = modeLabel;
+                modeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleGroupMode(g.id);
+                });
+
+                const addBtn = document.createElement('button');
+                addBtn.type = 'button';
+                addBtn.className = 'btn-del';
+                addBtn.title = 'Add Pulley to this Group';
+                addBtn.innerText = '+';
+                addBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    addPulleyToGroup(g.id);
+                });
+
+                const delBtn = document.createElement('button');
+                delBtn.type = 'button';
+                delBtn.className = 'btn-del';
+                delBtn.title = 'Delete Group';
+                delBtn.innerText = '[X]';
+                delBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteGroup(g.id);
+                });
+
+                actionsWrap.appendChild(modeBtn);
+                actionsWrap.appendChild(addBtn);
+                actionsWrap.appendChild(delBtn);
+
+                groupHeader.appendChild(titleWrap);
+                groupHeader.appendChild(actionsWrap);
 
                 groupHeader.addEventListener('click', (e) => {
                     if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return;
@@ -1760,7 +1816,19 @@
                 nodesListDiv.dataset.groupId = g.id;
 
                 if (nodeCount === 0) {
-                    nodesListDiv.innerHTML = `<div class="group-empty-msg">EMPTY GROUP<br><button type="button" style="margin-top: 4px;" onclick="addPulleyToGroup(${g.id})">+ Add Pulley</button></div>`;
+                    const emptyDiv = document.createElement('div');
+                    emptyDiv.className = 'group-empty-msg';
+                    emptyDiv.innerHTML = 'EMPTY GROUP<br>';
+                    const addFirstBtn = document.createElement('button');
+                    addFirstBtn.type = 'button';
+                    addFirstBtn.style.marginTop = '4px';
+                    addFirstBtn.innerText = '+ Add Pulley';
+                    addFirstBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        addPulleyToGroup(g.id);
+                    });
+                    emptyDiv.appendChild(addFirstBtn);
+                    nodesListDiv.appendChild(emptyDiv);
                 } else {
                     g.nodes.forEach((n, i) => {
                         if (!n.color) n.color = generateLegibleColor();
@@ -1787,20 +1855,68 @@
                                         </svg>
                                     </div>
                                     <div class="side-toggle-minimal">
-                                        <button type="button" class="side-tile ${n.side === 1 ? 'active' : ''}" onclick="setSide(${n.id}, 1)" title="In (CW)">in</button>
-                                        <button type="button" class="side-tile ${n.side === -1 ? 'active' : ''}" onclick="setSide(${n.id}, -1)" title="Out (CCW)">out</button>
+                                        <button type="button" class="side-tile side-in-btn ${n.side === 1 ? 'active' : ''}" title="In (CW)">in</button>
+                                        <button type="button" class="side-tile side-out-btn ${n.side === -1 ? 'active' : ''}" title="Out (CCW)">out</button>
                                     </div>
                                 </div>
-                                <button type="button" class="btn-del" onclick="deleteNode(${n.id})" title="Delete Pulley">[X]</button>
+                                <button type="button" class="btn-del node-del-btn" title="Delete Pulley">[X]</button>
                             </div>
                             <div>
                                 <div class="row">
                                     <span>Radius</span>
-                                    <input type="number" class="val-input" min="1" max="2000" step="any" value="${n.r}" onchange="updateRNumber(${n.id}, this.value, true, this)" oninput="updateRNumber(${n.id}, this.value, false, this)" title="Type radius">
+                                    <input type="number" class="val-input" min="1" max="2000" step="any" value="${n.r}" title="Type radius">
                                 </div>
-                                <input type="range" min="10" max="300" value="${Math.min(Math.max(n.r, 10), 300)}" onmousedown="saveHistory()" ontouchstart="saveHistory()" oninput="updateR(${n.id}, this.value, this)">
+                                <input type="range" class="val-range" min="10" max="300" value="${Math.min(Math.max(n.r, 10), 300)}">
                             </div>
                         `;
+
+                        const inBtn = card.querySelector('.side-in-btn');
+                        if (inBtn) {
+                            inBtn.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                setSide(n.id, 1);
+                            });
+                        }
+
+                        const outBtn = card.querySelector('.side-out-btn');
+                        if (outBtn) {
+                            outBtn.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                setSide(n.id, -1);
+                            });
+                        }
+
+                        const delNodeBtn = card.querySelector('.node-del-btn');
+                        if (delNodeBtn) {
+                            delNodeBtn.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                deleteNode(n.id);
+                            });
+                        }
+
+                        const radiusInput = card.querySelector('.val-input');
+                        if (radiusInput) {
+                            radiusInput.addEventListener('click', (e) => e.stopPropagation());
+                            radiusInput.addEventListener('focus', (e) => e.stopPropagation());
+                            radiusInput.addEventListener('input', (e) => {
+                                e.stopPropagation();
+                                updateRNumber(n.id, e.target.value, false, e.target);
+                            });
+                            radiusInput.addEventListener('change', (e) => {
+                                e.stopPropagation();
+                                updateRNumber(n.id, e.target.value, true, e.target);
+                            });
+                        }
+
+                        const rangeInput = card.querySelector('.val-range');
+                        if (rangeInput) {
+                            rangeInput.addEventListener('click', (e) => e.stopPropagation());
+                            rangeInput.addEventListener('mousedown', () => saveHistory());
+                            rangeInput.addEventListener('touchstart', () => saveHistory());
+                            rangeInput.addEventListener('input', (e) => {
+                                updateR(n.id, e.target.value, e.target);
+                            });
+                        }
 
                         card.addEventListener('mousedown', (e) => {
                             if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.closest('button') || e.target.closest('input') || e.target.closest('.drag-handle')) return;
@@ -1848,8 +1964,7 @@
                             const horiz = window.matchMedia('(max-width: 600px)').matches;
                             const before = horiz ? e.clientX < rect.left + rect.width / 2 : e.clientY < rect.top + rect.height / 2;
                             if (before) {
-                                const prev = card.previousElementSibling;
-                                (prev || card).classList.add(prev ? 'drag-over' : 'drag-over-first');
+                                card.classList.add('drag-over-first');
                             } else {
                                 card.classList.add('drag-over');
                             }
@@ -1863,34 +1978,33 @@
                             e.preventDefault();
                             clearDragIndicators();
                             try {
-                                const raw = e.dataTransfer.getData('application/json') || e.dataTransfer.getData('text/plain');
+                                const raw = e.dataTransfer.getData('application/json');
                                 if (!raw) return;
                                 const data = JSON.parse(raw);
-                                const { nodeId, fromGroupId } = data;
-                                const fromGrp = findGroup(fromGroupId);
-                                const toGrp = g;
-                                if (!fromGrp || !toGrp) return;
+                                const draggedNodeId = data.nodeId;
+                                const fromGroupId = data.fromGroupId;
 
-                                const fromNodeIdx = fromGrp.nodes.findIndex(x => x.id === nodeId);
-                                if (fromNodeIdx === -1) return;
+                                const fromGroup = findGroup(fromGroupId);
+                                const toGroup = findGroup(g.id);
+                                if (!fromGroup || !toGroup) return;
 
-                                let toIndex = i;
+                                const nodeIndex = fromGroup.nodes.findIndex(item => item.id === draggedNodeId);
+                                if (nodeIndex === -1) return;
+                                const [node] = fromGroup.nodes.splice(nodeIndex, 1);
+
                                 const rect = card.getBoundingClientRect();
                                 const horiz = window.matchMedia('(max-width: 600px)').matches;
-                                const after = horiz ? e.clientX >= rect.left + rect.width / 2 : e.clientY >= rect.top + rect.height / 2;
-                                if (after) toIndex += 1;
+                                const before = horiz ? e.clientX < rect.left + rect.width / 2 : e.clientY < rect.top + rect.height / 2;
+                                const targetIdx = toGroup.nodes.findIndex(item => item.id === n.id);
+                                const insertIdx = before ? (targetIdx === -1 ? 0 : targetIdx) : (targetIdx === -1 ? toGroup.nodes.length : targetIdx + 1);
 
-                                if (fromGrp.id === toGrp.id && (fromNodeIdx === toIndex || fromNodeIdx === toIndex - 1)) return;
-
+                                toGroup.nodes.splice(insertIdx, 0, node);
+                                activeGroupId = toGroup.id;
                                 saveHistory();
-                                const [movedNode] = fromGrp.nodes.splice(fromNodeIdx, 1);
-                                const insertIdx = (fromGrp.id === toGrp.id && fromNodeIdx < toIndex) ? toIndex - 1 : toIndex;
-                                toGrp.nodes.splice(insertIdx, 0, movedNode);
-                                activeGroupId = toGrp.id;
                                 renderUI();
                                 draw();
                             } catch (err) {
-                                console.error(err);
+                                console.error('Drop error:', err);
                             }
                         });
 
@@ -2708,6 +2822,7 @@
 
         // Window MouseUp
         window.addEventListener('mouseup', () => {
+            const wasTransforming = isDragging || isScaling || isMarquee;
             if ((isDragging || isScaling) && dragInitialState) {
                 const currentState = getSnapshot();
                 if (dragInitialState !== currentState) {
@@ -2728,8 +2843,11 @@
             draggedNodeId = null;
             guides = [];
             canvasWrap.style.cursor = isSpacePressed ? 'grab' : 'default';
-            renderUI();
-            draw();
+
+            if (wasTransforming) {
+                renderUI();
+                draw();
+            }
         });
 
         // ===== TOUCH SUPPORT =====
